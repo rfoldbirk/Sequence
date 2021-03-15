@@ -1,0 +1,24 @@
+{
+  "name": "sequence",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^4.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rfoldbirk/Sequence.git"
+  },
+  "author": "Rasmus Foldberg & Nicklas Friis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rfoldbirk/Sequence/issues"
+  },
+  "homepage": "https://github.com/rfoldbirk/Sequence#readme"
+}
