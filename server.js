@@ -8,11 +8,9 @@ var http = require("http").createServer(app)
 var io = require("socket.io")(http)
 
 // Egne biblioteker
-var Rooms = []
-var Players = []
-
-var Room = require("./rooms.js")
-var Player = require("./players.js")
+var Rooms = require("./rooms.js")
+var Players = require("./players.js")
+var Tokens = require("./tokens.js")
 
 
 // ---------------------- //
@@ -26,26 +24,26 @@ var randomString = (i) => [...Array(i)].map(_=>(Math.random()*36|0).toString(36)
 //      Socket halløj     //
 // ---------------------- //
 
+
+
 io.on("connection", (socket) => {
 	const sid = socket.id
 	var P // En kopi af spilleren
 
-
 	socket.on("login", uuid => {
 		// Finder brugeren
-		for (const player of Players) {
-			if (player.uuid == uuid) {
-				player.sid = sid
-				P = player
-			}
-		}
+		P = Players.find('uuid', uuid)
 
 		if (!P) {
-			socket.emit("reset")
+			socket.emit("prompt_login")
 			return
+		}
+		else {
+			P.sid = sid
 		}
 
 		log('Name:', P.username)
+		socket.emit('logged-in', P.username)
 	})
 
 
@@ -59,21 +57,25 @@ io.on("connection", (socket) => {
 		}
 
 		// Tjekker om brugernavnet allerede eksistere
-		if (findPlayer("username", username, true)) {
+		if (Players.find('username', username, true)) {
 			socket.emit("change_name", "exists" )
 			return
 		}
 
 		log(username, "registered")
-		P = new Player(sid, randomString(15), username)
-		Players.push(P)
+		P = Players.new(sid, username)
 
 		socket.emit("set_uuid", P.uuid)
 	})
 
 
+	socket.on('get_player_name', uuid => {
+		var player = Players.find('uuid', uuid)
+		socket.emit('response:get_player_name', player.name)
+	})
+
 	socket.on("users", () => {
-		table(Players);
+		table(Players)
 	})
 
 
@@ -86,7 +88,7 @@ io.on("connection", (socket) => {
 		}
 
 		// Tjekker om brugernavnet allerede eksistere
-		if (findPlayer("username", username, true)) {
+		if (Players.find("username", username, true)) {
 			socket.emit("name_requirements", "exists" )
 			return
 		}
@@ -100,8 +102,57 @@ io.on("connection", (socket) => {
 		if (!P) return
 		P.sid = null
 		setTimeout(() => {
-			deletePlayer(P.uuid)
+			Players.delete(P.uuid)
 		}, 60000*5) // Sletter en profil efter 5 min inaktivitet.
+	})
+
+
+	// Rum ting og sager
+
+	socket.on("new_room", () => {
+		// Tjek at brugeren ikke allerede er i et rum
+		if (P.room_id) {
+			socket.emit('response:new_room', 'allerede en del af et andet rum')
+			return
+		}
+
+		var room = Rooms.new(P.uuid)
+		P.room_id = room.id
+		socket.emit('response:new_room', 'yay!')
+	})
+
+
+	socket.on("room_info", () => {
+		// Tjek at brugeren ikke allerede er i et rum
+		var room = Rooms.find(P.room_id)
+		socket.emit('response:room_info', room)
+	})
+
+
+	socket.on("room_change_name", name => {
+		const invalid = checkVariable(name, { "type": "string", "minLength": 1, "maxLength": 30 })
+		var room = Rooms.find(P.room_id)
+		if (invalid || !room) {
+			socket.emit('response:room_change_name', false)
+			return
+		}
+
+
+		if (room.creator == P.uuid) {
+			room.name = name
+		}
+
+		socket.emit('response:room_change_name', true) // Så klienten ved at alt gik godt
+
+		// Sender en update til alle spiller i et rum. (undtagen ejeren)
+		for (var player of room.players) {
+			if (player.uuid == room.creator.uuid) continue
+			io.to(player.sid, 'update:room', room)
+		}
+	})
+
+	socket.on('room_info', room_id => {
+		var room = Rooms.find(room_id)
 	})
 })
 

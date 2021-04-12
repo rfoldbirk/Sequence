@@ -9,10 +9,12 @@ document.addEventListener('keyup', (e) => {
 
 
 nm_accept.addEventListener('click', (e) => {
-	localStorage.setItem(`${ localStorageTag }username`, nm_username_input.value)
-	const username = localStorage.getItem(`${ localStorageTag }username`)
-	socket.emit("register", username)
-	nm.toggle()
+	if (nm_username_input.classList.contains('is-valid')) {
+		localStorage.setItem(`${ localStorageTag }username`, nm_username_input.value)
+		const username = localStorage.getItem(`${ localStorageTag }username`)
+		socket.emit("register", username)
+		nm.toggle()
+	}	
 })
 
 
