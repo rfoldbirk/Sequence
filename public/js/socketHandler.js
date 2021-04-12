@@ -26,7 +26,7 @@ socket.on("set_uuid", uuid => {
 	localStorage.setItem(`${ localStorageTag }uuid`, uuid)
 })
 
-socket.on("reset", () => {
+socket.on("prompt_login", () => {
 	// Hvis klienten prøver at logge ind med forkert uuid,
 	// beder serveren om et reset og klienten for lov at lave 
 	// en ny bruger.
