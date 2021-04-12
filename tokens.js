@@ -33,6 +33,17 @@ class Tokens {
         return false
     }
 
+    remove = (token_str) => {
+        var index = 0
+        for (var token of _tokens) {
+            if (token.str == token_str) {
+                _tokens.splice(index, 1)
+            }
+
+            index ++
+        }
+    }
+
     cleanup = () => {
         let index = 0
         for (let token of _tokens) {
