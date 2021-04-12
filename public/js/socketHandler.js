@@ -1,5 +1,5 @@
 const localStorageTag = "sequence_"
-const socket = io("ws://localhost:3001")
+const socket = io("ws://localhost:3000")
 
 
 socket.on("connect", () => {	
