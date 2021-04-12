@@ -17,7 +17,6 @@ class Room {
 
 const rooms = []
 class Rooms {
-
     new(creator_uuid) {
         var room = new Room(creator_uuid)
         rooms.push(room)
