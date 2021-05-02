@@ -42,15 +42,13 @@ socket.on("prompt_login", () => {
 // --------- //
 
 function login() {
-	log("Loggin in")
 	const uuid = localStorage.getItem("sequence_uuid")
 
 	if (uuid) {
-		socket.emit("login", uuid)
+		socket.emit("reconnect", uuid)
 	}
 	else {
 		// spørg om navn via ui.
-
 		nm.toggle()
 		nm_username_input.dispatchEvent(new Event('keyup'))
 	}

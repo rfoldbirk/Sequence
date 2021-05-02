@@ -1,10 +1,10 @@
-var _tokens = []
+let _tokens = []
 
 class Tokens {
     random_string = (length) => [...Array(length)].map(_=>(Math.random()*36|0).toString(36)).join``
 
     uniqueToken = (length, life_in_seconds, _depth) => {
-        var token = {
+        let token = {
             str: this.random_string(length),
             expiration_date: Date.now() + Number(life_in_seconds)*1000,
             never_expire: (life_in_seconds == 'never')
@@ -34,8 +34,8 @@ class Tokens {
     }
 
     remove = (token_str) => {
-        var index = 0
-        for (var token of _tokens) {
+        let index = 0
+        for (let token of _tokens) {
             if (token.str == token_str) {
                 _tokens.splice(index, 1)
             }

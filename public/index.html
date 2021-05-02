@@ -7,11 +7,47 @@
 
 	<!-- Bootstrap CSS -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
-
+	<link rel="stylesheet" href="/css/layout.css">
+	<link rel="stylesheet" href="/css/responsive-table.css">
+	<link rel="stylesheet" href="/css/sidebar.css">
 	<title> Sequence </title>
 </head>
-<body class="m-5">
-	<h1> Sequence </h1>
+<body>
+
+	<div class="game">
+		<div class="sidebar">
+			<h3 id="online-count" class="m-5 text-white"> Loading... </h3>
+
+			<div class="players">
+				
+			</div>
+
+		</div>
+		<div class="table-area">
+			<div class="middle" style="align-items: end;">
+				<div></div>
+				<div class="top top-bottom" style="grid-template-columns: 1fr 1fr 1fr;">
+					<!-- <p class="player"> Spiller navn </p> -->
+				</div>
+				<div></div>
+			</div>
+			<div class="middle">
+				<div class="left grid" style="grid-template-rows: 1fr;">
+					<!-- <p class="player"> Spiller navn </p> -->
+				</div>
+				<div class="table"></div>
+				<div class="right grid" style="grid-template-rows: 1fr 1fr;">
+					<!-- <p class="player"> Spiller navn </p> -->
+				</div>
+			</div>
+			<div class="middle" style="align-items: start; padding-top: 18px;">
+				<div></div>
+				<div class="bottom top-bottom" style="grid-template-columns: 1fr 1fr;">
+					<!-- <p class="player"> Spiller navn </p> -->
+				</div>
+				<div></div>
+			</div>
+	</div>
 
 
 
@@ -41,6 +77,13 @@
 	</div>
 
 
+	<div id="menu" hidden="true">
+		<p id="invite_btn"> Inviter til spil </p>
+		<p id="join_btn"> Deltag i lobby </p>
+		<p id="change_btn" class="danger"> Skift navn </p>
+	</div>
+
+
 
 
 	<!-- Bootstrap Bundle with Popper & Socket.io -->
@@ -49,9 +92,13 @@
 	
 
 	<!-- Eget JavaScript -->
+	<script defer src="js/_livereload.js"></script>
 	<script defer src="js/helper.js"></script>
 	<script defer src="js/socketHandler.js"></script>
 	<script defer src="js/interactions.js"></script>
+	<script defer src="js/layout.js"></script>
+	<script defer src="js/sidebar.js"></script>
+	<script defer src="js/notifications.js"></script>
 
 
 

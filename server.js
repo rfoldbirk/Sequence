@@ -1,159 +1,67 @@
-const { log, table, clear } = console
+const { log, table, clear } = console; //clear()
 const port = 3000
 
 // Biblioteker
-var express = require("express")
-var app = express()
-var http = require("http").createServer(app)
-var io = require("socket.io")(http)
+let express = require("express")
+let app = express()
+let http = require("http").createServer(app)
+let io = require("socket.io")(http)
 
 // Egne biblioteker
-var Rooms = require("./rooms.js")
-var Players = require("./players.js")
-var Tokens = require("./tokens.js")
+let Rooms = require("./rooms.js")
+let Players = require("./players.js")
 
-
-// ---------------------- //
-//   Nyttige funktioner   //
-// ---------------------- //
-var randomString = (i) => [...Array(i)].map(_=>(Math.random()*36|0).toString(36)).join``
+const { __livereload_init__, watch_for_changes } = require('./util/livereload.js')
+__livereload_init__(io, ["public/css", "public/js", "public/"])
 
 
 
-// ---------------------- //
-//      Socket halløj     //
-// ---------------------- //
 
+// -------------------------- Socket.io redirects -------------------------- //
 
 
 io.on("connection", (socket) => {
-	const sid = socket.id
-	var P // En kopi af spilleren
-
-	socket.on("login", uuid => {
-		// Finder brugeren
-		P = Players.find('uuid', uuid)
-
-		if (!P) {
-			socket.emit("prompt_login")
+	
+	// Vi tilbyder en lille pakke, som begge mock-databaser bruger til at holde styr på den nuværende forbindelse
+	let con_pkg = { io, socket, current_player: undefined }
+	
+	// Fortæller klienten hvilke spillere er forbundet.
+	Players.send_all_connected_players(socket)
+	
+	// ------ Spiller relaterede handlinger ------ //
+	socket.on("reconnect", uuid => con_pkg.current_player = Players.reconnect(con_pkg, uuid))
+	socket.on("register", username => con_pkg.current_player = Players.register(con_pkg, username))
+	socket.on("check_username", username => Players.check_username(con_pkg, username))
+	socket.on("disconnect", () => Players.disconnect(con_pkg))
+	// Klienten spørger en gang i mellem serveren om den har de rigtige spillere...
+	// Klienten får kun svar hvis listen er ukorrekt
+	socket.on('players?', client_players => {
+		client_players.sort(sort_by_username(a, b))
+		server_players = Players.fetch(['username', 'room_id']).sort(sort_by_username(a, b))
+		
+		// Hvis de to arrays har forskellige længder, er de ikke ens
+		if (client_players.length != server_players.length) {
+			Players.send_all_connected_players(socket)
 			return
 		}
-		else {
-			P.sid = sid
-		}
-
-		log('Name:', P.username)
-		socket.emit('logged-in', P.username)
-	})
-
-
-	socket.on("register", username => {
-
-		// Tjekker om brugernavnet opfylder kravene
-		const invalid = checkVariable(username, { "type": "string", "minLength": 4, "maxLength": 15 })
-		if (invalid) {
-			socket.emit("change_name", invalid)
-			return
-		}
-
-		// Tjekker om brugernavnet allerede eksistere
-		if (Players.find('username', username, true)) {
-			socket.emit("change_name", "exists" )
-			return
-		}
-
-		log(username, "registered")
-		P = Players.new(sid, username)
-
-		socket.emit("set_uuid", P.uuid)
-	})
-
-
-	socket.on('get_player_name', uuid => {
-		var player = Players.find('uuid', uuid)
-		socket.emit('response:get_player_name', player.name)
-	})
-
-	socket.on("users", () => {
-		table(Players)
-	})
-
-
-	socket.on("check_username", username => {
-		// Tjekker om brugernavnet opfylder kravene
-		const invalid = checkVariable(username, { "type": "string", "minLength": 4, "maxLength": 15 })
-		if (invalid) {
-			socket.emit("name_requirements", invalid)
-			return
-		}
-
-		// Tjekker om brugernavnet allerede eksistere
-		if (Players.find("username", username, true)) {
-			socket.emit("name_requirements", "exists" )
-			return
-		}
-
-		socket.emit("name_requirements", "valid" )
-	})
-
-
-	socket.on("disconnect", () => {
-		log("Client disconnected")
-		if (!P) return
-		P.sid = null
-		setTimeout(() => {
-			Players.delete(P.uuid)
-		}, 60000*5) // Sletter en profil efter 5 min inaktivitet.
-	})
-
-
-	// Rum ting og sager
-
-	socket.on("new_room", () => {
-		// Tjek at brugeren ikke allerede er i et rum
-		if (P.room_id) {
-			socket.emit('response:new_room', 'allerede en del af et andet rum')
-			return
-		}
-
-		var room = Rooms.new(P.uuid)
-		P.room_id = room.id
-		socket.emit('response:new_room', 'yay!')
-	})
-
-
-	socket.on("room_info", () => {
-		// Tjek at brugeren ikke allerede er i et rum
-		var room = Rooms.find(P.room_id)
-		socket.emit('response:room_info', room)
-	})
-
-
-	socket.on("room_change_name", name => {
-		const invalid = checkVariable(name, { "type": "string", "minLength": 1, "maxLength": 30 })
-		var room = Rooms.find(P.room_id)
-		if (invalid || !room) {
-			socket.emit('response:room_change_name', false)
-			return
-		}
-
-
-		if (room.creator == P.uuid) {
-			room.name = name
-		}
-
-		socket.emit('response:room_change_name', true) // Så klienten ved at alt gik godt
-
-		// Sender en update til alle spiller i et rum. (undtagen ejeren)
-		for (var player of room.players) {
-			if (player.uuid == room.creator.uuid) continue
-			io.to(player.sid, 'update:room', room)
+		
+		// Sammenligner de to arrays, og sender tilbage hvis noget ikke passer
+		for (let i in client_players) {
+			if (client_players[i] != server_players[i]) {
+				Players.send_all_connected_players(socket)
+				return
+			}
 		}
 	})
-
-	socket.on('room_info', room_id => {
-		var room = Rooms.find(room_id)
-	})
+	
+	
+	// -------- Rum relaterede handlinger -------- //
+	socket.on("new_room", () => Rooms.new_room(con_pkg))
+	socket.on("invite", username => Rooms.invite(con_pkg, username))
+	socket.on("room_change_name", name => Rooms.change_name(con_pkg, name))
+	socket.on("join_lobby", owner => Rooms.join_lobby(con_pkg, owner))
+	// ------------------ Debug ------------------ //
+	socket.on('users', () => Players.test(con_pkg))
 })
 
 
@@ -171,64 +79,32 @@ http.listen(port, () => {
 
 
 
-// ---------------------- //
-//    Player funktioner   //
-// ---------------------- //
+// --------------------------- Hjælpe funktioner --------------------------- //
 
-function deletePlayer(uuid) {
-	for (const i in Players) {
-		if (Players[i].uuid == uuid) {
-			if (!Players[i].sid) {
-				Players.splice(i, 1)
-			}
-		}
+
+function sort_by_username(a, b) {
+	if (a.username.toUpperCase() < b.username.toUpperCase()) {
+		return -1
 	}
+	if (a.username.toUpperCase() > b.username.toUpperCase()) {
+		return 1
+	}
+	return 0
 }
 
 
-function findPlayer(key, val, case_insensitive) {
-	for (const P of Players) {
-		if (P.hasOwnProperty(key)) {
-			if (case_insensitive) {
-				if (P[key].toLowerCase() == val.toLowerCase()) 
-					return P
-			}
-			else {
-				if (P[key] == val) 
-					return P
-			}
-		}
-	}
-}
 
-
-function checkVariable(variable, { type, minLength, maxLength }) {
-	if (type) {
-		const var_type = typeof variable
-		if (var_type != type) return "type"
-	}
-
-	if (minLength) {
-		if (variable.length < minLength)
-			return "minLength"
-	}
-
-	if (maxLength) {
-		if (variable.length > maxLength)
-			return "maxLength"
-	}
-}
-
+// ------------------------------ Skal fjernes ------------------------------ //
 
 
 var cardSet = function() {
-    this.availableCards = cards()
-    this.usedCards = []
+	this.availableCards = cards()
+	this.usedCards = []
 }
 
 
 cardSet.prototype.pickRandomCard = function() {
-    log(this.availableCards)
+	log(this.availableCards)
 }
 
 
@@ -254,4 +130,3 @@ function makeCardArray(x) {
 
 
 var test = new cardSet()
-// console.log(test.availableCards)
