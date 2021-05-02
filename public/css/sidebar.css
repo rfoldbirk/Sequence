@@ -1,0 +1,65 @@
+.players {
+    color: #fff;
+    margin-left: 3rem;
+    overflow-y: auto;
+    margin-left: 3rem;
+}
+
+.player-me {
+    color: #09e15d
+}
+
+.players p {
+    padding: 0.5rem;
+    margin: 0.2rem;
+    margin-right: 3rem;
+    transition: background 0.2s;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.players p i {
+    font-style: normal;
+    padding: 0 4px;
+    border-radius: 5px;
+    float: right;
+    background: #4d4d4d;
+}
+
+.players p:hover {
+    background-color: #1c1c1c;
+}
+
+.player-hover {
+    background-color: #1c1c1c;
+}
+
+
+#menu {
+    position: absolute;
+    background: black;
+
+    padding: .5rem;
+
+    border-radius: 5px;
+
+    filter: drop-shadow(2px 2px .3rem rgb(0, 0, 0));
+}
+
+#menu p {
+    color: white;
+
+    padding: .5rem .8rem;
+    margin-bottom: 0px;
+    transition: background .2s;
+    border-radius: 5px;
+}
+
+#menu > .danger {
+    color: #f55;
+}
+
+#menu p:hover {
+    background:#283446;
+    cursor: pointer;
+}
