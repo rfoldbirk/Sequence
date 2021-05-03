@@ -11,8 +11,12 @@ class Player {
         this.uuid = Tokens.uniqueToken(15, 'never').str // En privat token, som kun skal gemmes på klientens pc
         this.username = username
         this.room_id
-
         this.pending_messages = []
+        //game data
+        this.playerGameData = {
+            cards:[],
+            teamColor:null
+        }
     }
 
     send_message(event, data) {

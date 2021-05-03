@@ -1,10 +1,11 @@
 let Tokens = require("./tokens.js")
 let Database = require("./util/db.js")
 let Players = require("./players.js")
+let Game = require("./game.js")
 let checkVariable = require("./util/verify.js")
 let rooms = []
 
-class Room {
+class Room extends Game {
     constructor(username) {
         // Meta
         this.id = Tokens.uniqueToken(15, 'never').str
