@@ -1,10 +1,10 @@
 let Tokens = require("./tokens.js")
-let {Game, Game_functions} = require("./game.js")
+let {Game_meta, Game_functions} = require("./game.js")
 let Players = require("./players.js")
 let checkVariable = require("./util/verify.js")
 let rooms = []
 
-class Room extends Game{
+class Room extends Game_meta {
     constructor(player) {
         super(rooms)
 
@@ -80,11 +80,16 @@ class Rooms extends Game_functions {
         if (!room) return // Noget gik galt, hvis det her sker... men det burde det ikke
 
         // Hvis spilleren allerede er 
-        if (room.invited.includes(username)) return
+        let is_invited = false
+        for (let player of room.invited)
+            if (player.username == username)
+                is_invited = true
 
-        room.invited.push(username)
+        if (is_invited) return
 
         const target_player = Players.find('username', username)
+        room.invited.push(target_player)
+
         target_player.send_message('invite_from', current_player.username)
     }
 
@@ -119,9 +124,19 @@ class Rooms extends Game_functions {
         if (!room) return
 
         // Hvis spilleren er på invitations listen
-        if (room.invited.includes(current_player.username)) {
+        let is_invited = false
+        let index = 0
+        for (let i in room.invited) {
+            if (room.invited[i].username == current_player.username) {
+                is_invited = true
+                index = i
+            }
+
+            index ++
+        }
+
+        if (is_invited) {
             // Fjern fra invite listen og 
-            let index = room.invited.indexOf(current_player.username)
             room.invited.splice(index, 1)
 
             room.players.push(current_player.username)
