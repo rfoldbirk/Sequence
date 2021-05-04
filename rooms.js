@@ -6,6 +6,8 @@ let rooms = []
 
 class Room extends Game{
     constructor(player) {
+        super(rooms)
+
         // Meta
         this.id = Tokens.uniqueToken(15, 'never').str
         this.name = 'Unavngivet rum'
