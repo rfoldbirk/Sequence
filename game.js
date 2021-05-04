@@ -29,14 +29,15 @@ class Game_meta {
 	}
 	broadcast(event, data) {
         this.players.forEach(player=>{
-            console.log(player.username)
+            player.socket.emit(event, data)
         })
     }
 };
 
 class Game_functions extends Database {
 	useCard(con_pkg, card){
-		console.log(this.find("id", con_pkg.current_player.room_id))
+		console.log(this.find("id", con_pkg.current_player.room_id).players)
+		this.find("id", con_pkg.current_player.room_id).broadcast("test", "test")
 	}
 }
 

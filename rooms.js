@@ -139,7 +139,7 @@ class Rooms extends Game_functions {
             // Fjern fra invite listen og 
             room.invited.splice(index, 1)
 
-            room.players.push(current_player.username)
+            room.players.push(current_player)
             current_player.room_id = room.id
             
             Players.send_all_connected_players(io)
