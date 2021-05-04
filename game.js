@@ -1,3 +1,5 @@
+var Database = require("./util/db.js");
+
 class Game {
 	constructor(){
 		this.availableCards = this.makeCardArray()
@@ -25,13 +27,14 @@ class Game {
 		this.availableCards.splice(random, 1);
 		return card
 	}
-	useCard(){
-		
-	}
 };
 
-var myGame = new Game
+class Game_functions extends Database {
+	useCard(con_pkg, card){
+		console.log(card)
+	}
+}
 
-console.log(myGame.pickRandomCard())
 
-module.exports = Game
+
+module.exports = {Game, Game_functions}

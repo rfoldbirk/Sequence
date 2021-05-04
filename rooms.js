@@ -1,18 +1,17 @@
 let Tokens = require("./tokens.js")
-let Database = require("./util/db.js")
+let {Game, Game_functions} = require("./game.js")
 let Players = require("./players.js")
-let Game = require("./game.js")
 let checkVariable = require("./util/verify.js")
 let rooms = []
 
-class Room extends Game {
-    constructor(username) {
+class Room extends Game{
+    constructor(player) {
         // Meta
         this.id = Tokens.uniqueToken(15, 'never').str
         this.name = 'Unavngivet rum'
-        this.players = [username]
+        this.players = [player]
         this.invited = []
-        this.creator = username
+        this.creator = player.username
 
         // Rummets regler
         this.permissions = {
@@ -28,15 +27,20 @@ class Room extends Game {
         this.cards
         this.whichTurn
     }
+    broadcast(event, data){
+        this.players.forEach(player=>{
+            console.log(player.username)
+        })
+    }
 }
 
 
-class Rooms extends Database {
+class Rooms extends Game_functions {
     constructor() { super(rooms) }
 
     new(con_pkg) {
         const { io, current_player } = con_pkg
-        let room = new Room(current_player.username)
+        let room = new Room(current_player)
         rooms.push(room)
         
         current_player.room_id = room.id

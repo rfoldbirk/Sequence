@@ -60,6 +60,8 @@ io.on("connection", (socket) => {
 	socket.on("invite", username => Rooms.invite(con_pkg, username))
 	socket.on("room_change_name", name => Rooms.change_name(con_pkg, name))
 	socket.on("join_lobby", owner => Rooms.join_lobby(con_pkg, owner))
+	// -------- Game relaterede handlinger -------- //
+	socket.on("use_card", card => Rooms.useCard(con_pkg, card))
 	// ------------------ Debug ------------------ //
 	socket.on('users', () => Players.test(con_pkg))
 })
