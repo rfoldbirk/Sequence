@@ -27,6 +27,11 @@ class Game {
 		this.availableCards.splice(random, 1);
 		return card
 	}
+	broadcast(event, data){
+        this.players.forEach(player=>{
+            console.log(player.username)
+        })
+    }
 };
 
 class Game_functions extends Database {

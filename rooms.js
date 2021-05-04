@@ -29,11 +29,6 @@ class Room extends Game{
         this.cards
         this.whichTurn
     }
-    broadcast(event, data){
-        this.players.forEach(player=>{
-            console.log(player.username)
-        })
-    }
 }
 
 
