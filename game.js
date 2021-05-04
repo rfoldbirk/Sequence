@@ -1,7 +1,7 @@
 var Database = require("./util/db.js");
 
 class Game_meta {
-	constructor(){
+	constructor() {
 		this.availableCards = this.makeCardArray()
 		this.usedCards = [];
 	}
@@ -21,13 +21,13 @@ class Game_meta {
 		}
 		return cards
 	}
-	pickRandomCard(){
+	pickRandomCard() {
 		var random = Math.floor(Math.random() * this.availableCards.length)
 		var card = this.availableCards[random];
 		this.availableCards.splice(random, 1);
 		return card
 	}
-	broadcast(event, data){
+	broadcast(event, data) {
         this.players.forEach(player=>{
             console.log(player.username)
         })
