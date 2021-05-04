@@ -1,6 +1,6 @@
 var Database = require("./util/db.js");
 
-class Game {
+class Game_meta {
 	constructor(){
 		this.availableCards = this.makeCardArray()
 		this.usedCards = [];
@@ -36,10 +36,10 @@ class Game {
 
 class Game_functions extends Database {
 	useCard(con_pkg, card){
-		console.log(card)
+		console.log(this.find("id", con_pkg.current_player.room_id))
 	}
 }
 
 
 
-module.exports = {Game, Game_functions}
+module.exports = {Game_meta, Game_functions}
