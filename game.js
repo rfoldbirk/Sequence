@@ -1,9 +1,11 @@
+var fs = require("fs")
 var Database = require("./util/db.js");
 
 class Game_meta {
 	constructor() {
 		this.availableCards = this.makeCardArray()
 		this.usedCards = [];
+		this.board = JSON.parse(String(fs.readFileSync("./board.json")))
 	}
 	makeCardArray() {
 		var cardArray = ["c", "d", "h", "s"];
@@ -32,13 +34,16 @@ class Game_meta {
             player.socket.emit(event, data)
         })
     }
+
 };
 
 class Game_functions extends Database {
 	useCard(con_pkg, card){
+		//send postion of piece to add
 		console.log(this.find("id", con_pkg.current_player.room_id).players)
 		this.find("id", con_pkg.current_player.room_id).broadcast("test", "test")
 	}
+
 }
 
 
