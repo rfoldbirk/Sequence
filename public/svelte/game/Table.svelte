@@ -17,27 +17,6 @@
 
 	let cards = ['buffer', 'c7', 'c8', 'h1', 'd3', 'd13', 's12']
 
-	let compiled_cards = []
-
-	for (let card of cards) {
-		if (card == 'buffer') continue
-		card = card.replace('c', 'CLUB-')
-		card = card.replace('h', 'HEART-')
-		card = card.replace('s', 'SPADE-')
-		card = card.replace('d', 'DIAMOND-')
-
-		card = card.replace('11', '11-JACK')
-		card = card.replace('12', '12-QUEEN')
-		card = card.replace('13', '13-KING')
-		
-		card = 'cards/' + card
-		card += '.svg'
-
-		compiled_cards.push(card)
-	}
-
-	compiled_cards = compiled_cards
-
 	socket.on('layout', layout => {
 		teams = layout
 	})
@@ -71,9 +50,9 @@
 			{/each}
 		</div>
 		<div class="table">
-			{#each compiled_cards as card}
+			{#each cards as card}
 				<div>
-					<img src={card} alt="{card}">
+					<img src="cards/{card}.svg" alt="{card}">
 					<div class="token"></div>
 				</div>
 			{/each}
