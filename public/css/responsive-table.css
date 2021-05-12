@@ -121,6 +121,12 @@
             --table-width: 310px
         }
     }
+
+    @media screen and (max-height: 525px) {
+        :root {
+            --table-width: 390px
+        }
+    }
 }
 
 @media screen and (min-width: 1700px) {

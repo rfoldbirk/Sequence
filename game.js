@@ -38,6 +38,8 @@ class Game_meta {
 };
 
 class Game_functions extends Database {
+	constructor(rooms) { super(rooms) }
+	
 	useCard(con_pkg, card){
 		//send postion of piece to add
 		console.log(this.find("id", con_pkg.current_player.room_id).players)

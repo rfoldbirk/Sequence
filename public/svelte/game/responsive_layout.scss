@@ -1,0 +1,170 @@
+@media screen and (min-width: 232px) {
+	:root {
+		--table-width: 130px;
+	}
+}
+
+/* iPhone 6s */
+@media screen and (min-width: 530px) {
+	:root {
+		--table-width: 220px;
+	}
+	
+}
+
+
+
+
+
+
+@media screen and (min-width: 600px) {
+	@media screen and (min-height: 390px) {
+		:root {
+			--table-width: 310px
+		}
+	}
+}
+
+
+
+
+@media screen and (min-width: 690px) {
+	@media screen and (min-height: 480px) {
+		
+		:root {
+			--table-width: 350px
+		}
+	}
+}
+
+
+
+
+
+
+@media screen and (min-width: 740px) {
+	:root {
+		--table-width: 430px;
+	}
+	
+	@media screen and (max-height: 520px) {
+		:root {
+			--table-width: 360px
+		}
+	}
+	
+	@media screen and (max-height: 450px) {
+		:root {
+			--table-width: 300px
+		}
+	}
+	
+	@media screen and (max-height: 370px) {
+		:root {
+			--table-width: 200px
+		}
+	}
+}
+
+
+
+
+
+@media screen and (min-width: 800px) {
+	:root {
+		--table-width: 300px;
+	}
+	
+	@media screen and (min-height: 453px) {
+		:root {
+			--table-width: 350px;
+		}
+	}
+	
+	@media screen and (min-height: 550px) {
+		:root {
+			--table-width: 400px;
+		}
+	}
+	
+	@media screen and (min-height: 960px) {
+		:root {
+			--table-width: 300px;
+		}
+	}
+}
+
+@media screen and (min-width: 1000px) {
+	:root {
+		--table-width: 450px;
+	}
+	
+	@media screen and (max-height: 760px) {
+		:root {
+			--table-width: 520px
+		}
+	}
+}
+
+@media screen and (min-width: 1100px) {
+	:root {
+		--table-width: 500px;
+	}
+	
+	@media screen and (max-height: 760px) {
+		:root {
+			--table-width: 520px
+		}
+	}
+}
+
+@media screen and (min-width: 1175px) {
+	:root {
+		--table-width: 530px;
+	}
+	
+	@media screen and (max-height: 760px) {
+		:root {
+			--table-width: 520px
+		}
+	}
+}
+
+@media screen and (min-width: 1230px) {
+	
+	:root {
+		--table-width: 600px;
+	}
+	
+	@media screen and (max-height: 500px) {
+		:root {
+			--table-width: 310px
+		}
+	}
+	
+	@media screen and (max-height: 525px) {
+		:root {
+			--table-width: 390px
+		}
+	}
+}
+
+@media screen and (min-width: 1400px) {
+	:root {
+		--table-width: 700px;
+	}
+	
+	@media screen and (max-height: 760px) {
+		:root {
+			--table-width: 520px
+		}
+	}
+}
+
+@media screen and (min-width: 1700px) {
+	@media screen and (min-height: 965px) {
+		:root {
+			--table-width: 840px;
+		}
+	}
+}

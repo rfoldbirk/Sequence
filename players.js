@@ -13,9 +13,10 @@ class Player {
         this.room_id
         this.pending_messages = []
         //game data
-        this.playerGameData = {
-            cards:[],
-            teamColor:null
+        this.gameData = {
+            cards: [],
+            teamColor: 'spectator',
+            teamLocked: false
         }
     }
 
@@ -58,10 +59,6 @@ class Players extends Database {
     
     // ------------- Socket endpoints ------------- //
 
-    test(con_pkg) {
-        console.log(con_pkg.current_player.username)
-    }
-
     reconnect(con_pkg, uuid) {
         const { socket } = con_pkg
 
@@ -79,7 +76,9 @@ class Players extends Database {
     
         socket.emit('logged-in', player.username)
 
+        // Sender pending_messages, hvis de eksistere
         player.send_message()
+        Rooms.broadcast_info(player.room_id, 'players')
 
         return player
     }
@@ -127,12 +126,13 @@ class Players extends Database {
     }
 
     disconnect(con_pkg) {
-        const { current_player } = con_pkg
+        const { io, current_player } = con_pkg
 
         if (!current_player) return
 		current_player.sid = null
 		setTimeout(() => {
 			this.delete(current_player.uuid)
+            this.send_all_connected_players(io)
 		}, 60000*5) // Sletter en profil efter 5 min inaktivitet.
     }
 }
@@ -141,3 +141,5 @@ class Players extends Database {
 
 const p = new Players
 module.exports = p
+
+let Rooms = require(__dirname + '/rooms.js')

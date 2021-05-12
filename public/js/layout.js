@@ -148,7 +148,7 @@ function mt(teams) {
 
 
 // Default
-mt(t[2])
+mt(t[4])
 
 const keys = Object.keys(t)
 let _i = 0
@@ -162,4 +162,4 @@ function next() {
     mt( t[key] )
 }
 
-// setTimeout(next, 1000)
+// setTimeout(next, 2000)

@@ -1,5 +1,16 @@
-const { log, table, clear } = console; //clear()
+const { log, table, clear } = console
+const { execSync, exec } = require('child_process')
 const port = 3000
+
+
+if (process.argv.includes('--clear')) clear()
+
+if (!process.argv.includes('--ignore')) {
+	console.log('asdsad')
+	execSync('mkdir -p public/compiled', { stdio: 'ignore' })
+	execSync('npx rollup -c', { stdio: 'ignore' })
+}
+
 
 // Biblioteker
 let express = require("express")
@@ -12,7 +23,7 @@ let Rooms = require("./rooms.js")
 let Players = require("./players.js")
 
 const { __livereload_init__, watch_for_changes } = require('./util/livereload.js')
-__livereload_init__(io, ["public/css", "public/js", "public/"])
+__livereload_init__(io, ["public/css", "public/js", "public/", "public/compiled"])
 
 
 
@@ -35,31 +46,22 @@ io.on("connection", (socket) => {
 	socket.on("disconnect", () => Players.disconnect(con_pkg))
 	// Klienten spørger en gang i mellem serveren om den har de rigtige spillere...
 	// Klienten får kun svar hvis listen er ukorrekt
-	socket.on('players?', client_players => {
-		client_players.sort(sort_by_username(a, b))
-		server_players = Players.fetch(['username', 'room_id']).sort(sort_by_username(a, b))
-		
-		// Hvis de to arrays har forskellige længder, er de ikke ens
-		if (client_players.length != server_players.length) {
-			Players.send_all_connected_players(socket)
-			return
-		}
-		
-		// Sammenligner de to arrays, og sender tilbage hvis noget ikke passer
-		for (let i in client_players) {
-			if (client_players[i] != server_players[i]) {
-				Players.send_all_connected_players(socket)
-				return
-			}
-		}
-	})
+	socket.on('players?', () => Players.send_all_connected_players(socket))
 	
 	
 	// -------- Rum relaterede handlinger -------- //
 	socket.on("new_room", () => Rooms.new_room(con_pkg))
 	socket.on("invite", username => Rooms.invite(con_pkg, username))
 	socket.on("room_change_name", name => Rooms.change_name(con_pkg, name))
-	socket.on("join_lobby", owner => Rooms.join_lobby(con_pkg, owner))
+	socket.on("join_lobby", owner => Rooms.join(con_pkg, owner))
+	socket.on("leave_room", () => Rooms.leave(con_pkg))
+	socket.on('change_team', username => Rooms.change_team(con_pkg, username))
+	socket.on('get_owner', () => Rooms.get_owner(con_pkg))
+	socket.on('room_players?', () => Rooms.get_players(con_pkg))
+	// Rum handlinger, som kun er tilladt for ejeren.
+	socket.on('lock_user', target_user => Rooms.owner_action(con_pkg, 'lock', target_user))
+	socket.on('kick', target_user => Rooms.owner_action(con_pkg, 'kick', target_user))
+	socket.on('start', () => Rooms.owner_action(con_pkg, 'start', false))
 	// -------- Game relaterede handlinger -------- //
 	socket.on("use_card", card => Rooms.useCard(con_pkg, card))
 	// ------------------ Debug ------------------ //
@@ -68,10 +70,11 @@ io.on("connection", (socket) => {
 
 
 app.use(express.static("public"))
+app.use('/cards', express.static('cardsFaces'))
 
 
-app.get("/test", (req, res) => {
-	res.send("test")
+app.get("/legacy", (req, res) => {
+	res.sendFile(__dirname + '/public/legacy.html')
 })
 
 

@@ -1,5 +1,5 @@
 socket.on('invite_from', username => {
-    alert('Fik en invitation fra: ' + username)
+    // Aktiver pop notifikation
 })
 
 socket.on('request_join', username => {

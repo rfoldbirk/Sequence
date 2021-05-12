@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="dk">
+<head>
+
+	<!------------------------------------ Meta data ----------------------------------->
+
+	<title> Sequence </title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+	<!---------------------------------- Bootstrap CSS --------------------------------->
+	
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+	<link rel="stylesheet" href="/css/layout.css">
+	<link rel="stylesheet" href="/css/responsive-table.css">
+	<link rel="stylesheet" href="/css/sidebar.css">
+	<link rel="stylesheet" href="/css/lobby.css">
+</head>
+<body>
+
+	<!-------------------------------------- Spil -------------------------------------->
+
+	<div class="game">
+
+
+		<!------------ Sidebar ------------>
+
+		<div class="sidebar">
+			<h3 id="online-count" class="m-5 text-white"> Loading... </h3>
+
+			<div class="players">
+				
+			</div>
+
+
+			<div id="lobby">
+				<div id="lobby-controls">
+					<button id="lobby-controls-settings"> Indstillinger </button>
+					<!-- Et tomt div element giver lidt plads -->
+					<div></div> 
+					<button id="lobby-controls-leave"> Forlad rum </button>
+				</div>
+
+				<div id="lobby-info">
+					<p id="lobby_amount_players"> 1 / 12 spillere </p>
+					<!-- <p id="lobby-warning"> Ikke korrekt! </p> -->
+				</div>
+
+				<div id="lobby-players"></div>
+			</div>
+		</div>
+
+
+		<!-------------- Bord ------------->
+
+		<div class="table-area">
+			<div class="middle" style="align-items: end;">
+				<div></div>
+				<div class="top top-bottom" style="grid-template-columns: 1fr 1fr 1fr;">
+					<!-- <p class="player"> Spiller navn </p> -->
+				</div>
+				<div></div>
+			</div>
+			<div class="middle">
+				<div class="left grid" style="grid-template-rows: 1fr;">
+					<!-- <p class="player"> Spiller navn </p> -->
+				</div>
+				<div class="table"></div>
+				<div class="right grid" style="grid-template-rows: 1fr 1fr;">
+					<!-- <p class="player"> Spiller navn </p> -->
+				</div>
+			</div>
+			<div class="middle" style="align-items: start; padding-top: 18px;">
+				<div></div>
+				<div class="bottom top-bottom" style="grid-template-columns: 1fr 1fr;">
+					<!-- <p class="player"> Spiller navn </p> -->
+				</div>
+				<div></div>
+			</div>
+	</div>
+
+
+	<!------------------------------ Registrer brugernavn ------------------------------>
+
+	<div class="modal fade" id="nameModal" tabindex="-1" aria-labelledby="nameModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<h5 class="modal-title" id="nameModalLabel"> Hvad vil du kaldes? </h5>
+						<label for="floatingInputInvalid"> Dit brugernavn skal være unikt. </label>
+					</div>
+				</div>
+				<div class="modal-body">
+					<div class="form-floating">
+						<input id="nm_username_input" type="username" class="form-control" id="floatingInputInvalid" placeholder="lasse87">
+						<label for="floatingInputInvalid">Brugernavn</label>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<div hidden="true" id="nm_spin" class="spinner-border text-dark" role="status">
+						<span class="visually-hidden">Loading...</span>
+					</div>
+					<button id="nm_accept" type="button" class="btn btn-primary disabled">Vælg brugernavn</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<!--------------------------------- Højrekliks menu -------------------------------->
+
+	<div id="menu" hidden="true">
+		<p id="invite_btn"> Inviter til spil </p>
+		<p id="join_btn"> Deltag i lobby </p>
+		<p id="change_btn" class="danger"> Skift navn </p>
+	</div>
+
+
+	<!--------------------- Bootstrap bundle med Popper & Socket.io -------------------->
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	
+
+	<!--------------------------------- Eget JavaScript -------------------------------->
+
+	<script defer src="js/_livereload.js"></script>
+	<script defer src="js/helper.js"></script>
+	<script defer src="js/socketHandler.js"></script>
+	<script defer src="js/interactions.js"></script>
+	<script defer src="js/layout.js"></script>
+	<script defer src="js/sidebar.js"></script>
+	<script defer src="js/notifications.js"></script>
+</body>
+</html>

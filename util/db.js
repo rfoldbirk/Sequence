@@ -6,9 +6,10 @@ class Database {
 		this.db = db_arr
 	}
 
-	delete(uuid) {
+	delete(uuid, id_tag) {
+		id_tag = id_tag || 'uuid'
 		for (const i in this.db) {
-			if (this.db[i].uuid == uuid) {
+			if (this.db[i][id_tag] == uuid) {
 				if (!this.db[i].sid) {
 					this.db.splice(i, 1)
 				}
