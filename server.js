@@ -6,7 +6,6 @@ const port = 3000
 if (process.argv.includes('--clear')) clear()
 
 if (!process.argv.includes('--ignore')) {
-	console.log('asdsad')
 	execSync('mkdir -p public/compiled', { stdio: 'ignore' })
 	execSync('npx rollup -c', { stdio: 'ignore' })
 }
