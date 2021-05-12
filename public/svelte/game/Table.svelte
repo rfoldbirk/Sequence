@@ -15,7 +15,7 @@
 	let visible = false
 	setTimeout(() => visible = true, 500)
 
-	let cards = ['buffer', 'c7', 'c8', 'h1', 'd3', 'd13', 's12']
+	let cards = ['buffer', 'c7', 'c8', 'h1', 'd3', 'd13', 's12', 'd3', 'd13', 'buffer']
 
 	socket.on('layout', layout => {
 		teams = layout
@@ -29,6 +29,32 @@
 		console.log('-- START RESPONSE --')
 		console.log(data)
 	})
+
+	let innerWidth
+	let innerHeight
+	let cardHolder
+
+	$: {
+		let a = innerHeight + innerWidth
+
+		if (cardHolder) {
+			let height = window.getComputedStyle(cardHolder).height.split('px')[0]
+			console.log(Number(height))
+
+			let children = cardHolder.querySelectorAll('div')
+
+			for (let child of children) {
+				let svg = child.querySelector('img')
+				svg.style.height = height/10 + 'px'
+			}
+
+			// var r = document.querySelector(':root');
+			// r.style.setProperty('--card-height', `${height/10}px`)
+		}
+	}
+
+	
+
 </script>
 
 
@@ -50,12 +76,16 @@
 			{/each}
 		</div>
 		<div class="table">
-			{#each cards as card}
-				<div>
-					<img src="cards/{card}.svg" alt="{card}">
-					<div class="token"></div>
-				</div>
-			{/each}
+			<div bind:this={cardHolder} class="cardHolder">
+				
+				{#each cards as card}
+					<div>
+						<img src="cards/{card}.svg" alt="{card}">
+						<!-- <div class="token"></div> -->
+					</div>
+				{/each}
+			</div>
+
 		</div>
 		<div class="right grid" style="grid-template-rows: repeat({teams.right.length}, 1fr);">
 			{#each teams.right as player}
@@ -75,10 +105,13 @@
 </div>
 {/if}
 
+<svelte:window bind:innerWidth={innerWidth} bind:innerHeight={innerHeight} />
+
 
 <style lang="scss">
 	:root {
 		--table-width: 230px;
+		--card-height: 20px;
 	}
 	@import "./responsive_layout";
 
@@ -112,32 +145,45 @@
 	}
 	
 	.table {
-		background: rgb(39, 61, 47);
+		// background: rgb(39, 61, 47);
+		background-image: url('/plade.svg');
+		background-repeat: no-repeat;
 		width: 100%;
 		height: 100%;
-		
-		display: grid;
-		grid-template-rows: repeat(11, 1fr);
-		grid-template-columns: repeat(11, 1fr);
 
-		div { 
+		padding: calc(var(--table-width)/1.4 / 10) calc(var(--table-width) / 10);
+		
+
+
+		.cardHolder {
 			display: grid;
-			img {
-				justify-self: center;
-				align-self: center;
-				transform: rotate(90deg);
-				height: calc(var(--table-width) / 11);
-			}
-			.token {
-				background-color: green;
-				position: absolute;
-				justify-self: center;
-				align-self: center;
-				border-radius: 40px;
-				width: 25px;
-				height: 25px;
+			grid-template-rows: repeat(10, 1fr);
+			grid-template-columns: repeat(10, 1fr);
+
+			width: 100%;
+			height: 100%;
+
+			background: red;
+			div { 
+				display: grid;
+				img {
+					justify-self: center;
+					align-self: center;
+					transform: rotate(90deg);
+					height: 20px;//calc(var(--card-height));
+				}
+				.token {
+					background-color: green;
+					position: absolute;
+					justify-self: center;
+					align-self: center;
+					border-radius: 40px;
+					width: 25px;
+					height: 25px;
+				}
 			}
 		}
+
 
 	}
 	
