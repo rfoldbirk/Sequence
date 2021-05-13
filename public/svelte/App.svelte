@@ -2,6 +2,8 @@
 	import Login from './Login.svelte'
 	import Notifications from './Notifications.svelte'
 	import Sidebar from './sidebar/Sidebar.svelte'
+
+	import Cards from './game/Cards.svelte'
 	import Table from './game/Table.svelte'
 
 	let sidebar_visible = true
@@ -15,6 +17,8 @@
 <!-- Overlays -->
 <Login/>
 <Notifications/>
+<Cards full_width={ !sidebar_visible }/>
+
 {#if sidebar_visible}
 	<Sidebar/>
 {/if}

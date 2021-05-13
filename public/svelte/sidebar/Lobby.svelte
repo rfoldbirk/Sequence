@@ -9,7 +9,6 @@
 	socket.on('connect', () => $players = [] )
 
 	onMount(() => {
-		console.log('fetching players')
 		socket.emit('room_players?')
 	})
 

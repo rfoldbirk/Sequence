@@ -112,7 +112,7 @@
 
 <style lang="scss">
 	.layout {
-		z-index: 1;
+		z-index: 5;
 		display: grid;
 		position: absolute;
 		width: 100%;
