@@ -15,7 +15,7 @@
 	let visible = false
 	setTimeout(() => visible = true, 500)
 
-	let cards = []
+	let cards = ['buffer', 'c7', 'c8', 'h1', 'd3', 'd13', 's12', 'd3', 'd13', 'buffer']
 
 	socket.on('layout', layout => {
 		teams = layout
@@ -23,13 +23,6 @@
 
 	socket.on('turn', turn => {
 		which_turn = turn
-	})
-
-	socket.on('cards', board => {
-		for (var i = 0; i < Object.keys(board).length; i++) {
-			board[i].forEach(card => cards.push(card.card))
-		}
-		console.log(cards)
 	})
 
 	socket.on('start:response', data => {
@@ -71,7 +64,7 @@
 		<div></div>
 		<div class="top top-bottom" style="grid-template-columns: repeat({teams.top.length}, 1fr);">
 			{#each teams.top as player}
-			<p class='player'> { player } </p>
+				<p class='player'> { player } </p>
 			{/each}
 		</div>
 		<div></div>
@@ -79,22 +72,24 @@
 	<div class="middle">
 		<div class="left grid" style="grid-template-rows: repeat({teams.left.length}, 1fr);">
 			{#each teams.left as player}
-			<p style="transform: rotate(-{ amount_of_rotation }deg);" class='player'> { player } </p>
+				<p style="transform: rotate(-{ amount_of_rotation }deg);" class='player'> { player } </p>
 			{/each}
 		</div>
 		<div class="table">
-			<div class="cardHolder">
+			<div bind:this={cardHolder} class="cardHolder">
+				
 				{#each cards as card}
-				<div style="background-image: url('/cards/{card}.svg')">
-					<img class="token" src="/images/tokenRed.svg">
-				</div>
+					<div>
+						<img src="cards/{card}.svg" alt="{card}">
+						<!-- <div class="token"></div> -->
+					</div>
 				{/each}
 			</div>
 
 		</div>
 		<div class="right grid" style="grid-template-rows: repeat({teams.right.length}, 1fr);">
 			{#each teams.right as player}
-			<p style="transform: rotate({ amount_of_rotation }deg);" class='player'> { player } </p>
+				<p style="transform: rotate({ amount_of_rotation }deg);" class='player'> { player } </p>
 			{/each}
 		</div>
 	</div>
@@ -102,7 +97,7 @@
 		<div></div>
 		<div class="bottom top-bottom" style="grid-template-columns: repeat({teams.bottom.length}, 1fr);">
 			{#each teams.bottom as player}
-			<p class='player'> { player } </p>
+				<p class='player'> { player } </p>
 			{/each}
 		</div>
 		<div></div>
@@ -114,44 +109,44 @@
 
 
 <style lang="scss">
-:root {
-	--table-width: 230px;
-	--card-height: 20px;
-}
-@import "./responsive_layout";
+	:root {
+		--table-width: 230px;
+		--card-height: 20px;
+	}
+	@import "./responsive_layout";
 
-.player {
-	color: #fff;
-	border-radius: 5px;
-	padding: .5rem;
+	.player {
+		color: #fff;
+		border-radius: 5px;
+		padding: .5rem;
 
-	#blue {
-		background: #144aca;
+		#blue {
+			background: #144aca;
+		}
+
+		#red {
+			background: #c72f2f;
+		}
+
+		#green {
+			background: #268426;;
+		}
 	}
 
-	#red {
-		background: #c72f2f;
+	.grid {
+		display: grid;
+		justify-items: center;
+		align-items: center;
 	}
-
-	#green {
-		background: #268426;;
+	
+	.table-area {
+		display: grid;
+		grid-template-rows: 1fr var(--table-width) 1fr
 	}
-}
-
-.grid {
-	display: grid;
-	justify-items: center;
-	align-items: center;
-}
-
-.table-area {
-	display: grid;
-	grid-template-rows: 1fr var(--table-width) 1fr
-}
-
-.table {
+	
+	.table {
 		// background: rgb(39, 61, 47);
-		background-image: url('/images/plade.svg');
+		background-image: url('/plade.svg');
 		background-repeat: no-repeat;
 		width: 100%;
 		height: 100%;
@@ -168,18 +163,23 @@
 			width: 100%;
 			height: 100%;
 
-			div {
-				margin: 2px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				background-repeat: no-repeat;
-				background-position: center;
-				background-size: contain;
+			background: red;
+			div { 
+				display: grid;
+				img {
+					justify-self: center;
+					align-self: center;
+					transform: rotate(90deg);
+					height: 20px;//calc(var(--card-height));
+				}
 				.token {
-					width: 70%;
-					height: 70%;
-					box-shadow: 1px;
+					background-color: green;
+					position: absolute;
+					justify-self: center;
+					align-self: center;
+					border-radius: 40px;
+					width: 25px;
+					height: 25px;
 				}
 			}
 		}

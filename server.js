@@ -1,7 +1,8 @@
 const { log, table, clear } = console
 const { execSync, exec } = require('child_process')
 const port = 3000
-
+const fs = require("fs")
+const board = JSON.parse(String(fs.readFileSync("./board.json")))
 
 if (process.argv.includes('--clear')) clear()
 
@@ -34,10 +35,9 @@ io.on("connection", (socket) => {
 	
 	// Vi tilbyder en lille pakke, som begge mock-databaser bruger til at holde styr på den nuværende forbindelse
 	let con_pkg = { io, socket, current_player: undefined }
-	
+	socket.emit("cards", board)
 	// Fortæller klienten hvilke spillere er forbundet.
 	Players.send_all_connected_players(socket)
-	
 	// ------ Spiller relaterede handlinger ------ //
 	socket.on("reconnect", uuid => con_pkg.current_player = Players.reconnect(con_pkg, uuid))
 	socket.on("register", username => con_pkg.current_player = Players.register(con_pkg, username))
