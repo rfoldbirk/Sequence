@@ -1,7 +1,7 @@
 {
     "0": [{
         "card": "buffer",
-        "token": null
+        "token": "black"
     }, {
         "card": "s10",
         "token": null
@@ -28,7 +28,7 @@
         "token": null
     }, {
         "card": "buffer",
-        "token": null
+        "token": "black"
     }],
     "1": [{
         "card": "s9",
@@ -280,7 +280,7 @@
     }],
     "9": [{
         "card": "buffer",
-        "token": null
+        "token": "black"
     }, {
         "card": "c6",
         "token": null
@@ -307,6 +307,6 @@
         "token": null
     }, {
         "card": "buffer",
-        "token": null
+        "token": "black"
     }]
 }

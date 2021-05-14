@@ -41,9 +41,8 @@
 
 </script>
 
-
+<img on:click={ () =>  socket.emit('draw_card') } class="extraCard" src="/cards/cardBack.svg">
 <div class="CardChooser" style="left: { full_width ? '0':'300px' }; height: { $show_hand ? '270px':'45px' } ">
-	
 	{#if show_howto}
 	<div transition:fly={{ y: 200, duration: 300 }} class="overlay">
 		<div class="howto">
@@ -59,7 +58,7 @@
 
 	<div on:mouseleave={ () => $selected_card = '' } class="CardHolder">
 		{#each cards as card}
-			<img transition:fly={{ x: 300, duration: 500 }} on:mouseenter={ () => { has_hovered = true; $selected_card = card; } } on:click={ ()=>use_special(card) } src="/cards/{card}.svg" alt={card}>
+			<img transition:fly={{x:-1400, y: -1000, duration:  800 }} on:mouseenter={ () => { has_hovered = true; $selected_card = card; } } on:click={ ()=>use_special(card) } src="/cards/{card}.svg" alt={card}>
 		{/each}
 	</div>
 </div>
@@ -69,6 +68,13 @@
 
 
 <style lang="scss">
+	.extraCard {
+	    position: absolute;
+	    height: 9%;
+	    transform: rotate(90deg);
+	    right: 0;
+	    top: 4%;
+	}
 	.CardChooser {
 		position: absolute;
 		bottom: 0;

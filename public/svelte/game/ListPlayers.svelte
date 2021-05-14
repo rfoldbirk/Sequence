@@ -8,7 +8,7 @@
 {#each team as player}
 	{#each $players as { username, gameData }}
 		{#if player == username}
-			<p on:click={ () =>  socket.emit('draw_card') } id="{ player == username ? gameData.teamColor:'' }" class='player' style="transform: rotate({ rotation }deg);" > { player } </p>
+			<p id="{ player == username ? gameData.teamColor:'' }" class='player' style="transform: rotate({ rotation }deg);" > { player } </p>
 		{/if}
 	{/each}
 {/each}

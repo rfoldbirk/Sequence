@@ -84,8 +84,8 @@
 			<div class="cardHolder">
 				{#each cards as { card, token }, index}
 				<div on:click={ () => click_on_card(index) } id="{ $selected_card == card ? 'selectable':'hoverable'}" style="background-image: url('/cards/{card}.svg')">
-					{#if token}
-						<img class="token" src="/images/token{ token[0].toUpperCase() + token.slice(1) }.svg" alt="{card}">
+					{#if token && token != 'black'}
+						<img class="token" src="/images/token{token[0].toUpperCase() + token.slice(1) }.svg" alt="{card}">
 					{/if}
 				</div>
 				{/each}
@@ -126,6 +126,7 @@
 	display: grid;
 	grid-template-rows: 1fr var(--table-width) 1fr
 }
+
 
 .table {
 		// background: rgb(39, 61, 47);
