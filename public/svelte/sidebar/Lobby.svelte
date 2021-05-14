@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte'
 	import { fly } from 'svelte/transition'
-	import { isOwner, players } from '../stores'
+	import { isOwner, players, in_progress } from '../stores'
 	
 	const me = () => { return localStorage.getItem('username') }
 
@@ -33,6 +33,8 @@
 		$players = []
 	})
 
+	// socket.on('turn', () => $in_progress = true)
+
 
 	socket.on('lobby_players', player_data => {
 		let new_players = []
@@ -55,7 +57,7 @@
 	<div transition:fly="{{ y: 200, duration: 300 }}"  class="lobby {$players.length > 0 ? 'show':''}">
 		<div class="controls" style={!$isOwner ? 'grid-template-columns: 1fr':''}>
 			{#if $isOwner}
-				<button on:click={ start_game } class="settings"> Start spil! </button>
+				<button on:click={ start_game } class="settings"> { $in_progress ? 'Genstart':'Start spil!' } </button>
 			{/if}
 			<div></div>
 			<button on:click={ leave } class="remove"> { $isOwner ? 'Fjern':'Forlad' } rum </button>

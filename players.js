@@ -16,7 +16,8 @@ class Player {
         this.gameData = {
             cards: [],
             teamColor: 'spectator',
-            teamLocked: false
+            teamLocked: false,
+            canDraw: false
         }
     }
 
@@ -79,6 +80,11 @@ class Players extends Database {
         // Sender pending_messages, hvis de eksistere
         player.send_message()
         Rooms.broadcast_info(player.room_id, 'players')
+
+        const room = Rooms.find('id', player.room_id)
+        if (room) {
+            room.send_info()
+        }
 
         return player
     }

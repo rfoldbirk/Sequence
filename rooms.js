@@ -23,13 +23,7 @@ class Room extends Game_meta {
 			guests_can_invite: false // Om gæster selv må invitere
 		}
 
-		// Game Data
-		this.in_progress = false
-		this.cards
-		this.whichTurn
-
-		this.layout // et array som indeholder top, right, bottom og left med spiller navne
-		this.turn_order // et array som dikterer rækkefølgen
+		// Game Data ligger i game.js - Game_meta()
 	}
 
 	remove_player(username) {
@@ -230,7 +224,7 @@ class Rooms extends Game_functions {
 			
 			if (players_left <= 0) {
 				key = new_value(layout, key, (amount_of_teams == 2) ? true:false)
-				console.log('\x1b[36m%s\x1b[31m%s\x1b[0m%s\x1b[31m [%s]\x1b[0m', player, ' -> ', key, players_left)
+				// console.log('\x1b[36m%s\x1b[31m%s\x1b[0m%s\x1b[31m [%s]\x1b[0m', player, ' -> ', key, players_left)
 				players_left += standard_amount_of_players
 			}
 			layout[key].push(player)
@@ -238,14 +232,20 @@ class Rooms extends Game_functions {
 			
 			players_left -= 1
 		}
+
+		for (let player of sorted_layout) {
+			if (!player) continue
+			room.turn_order.push(player)
+		}
 		
 		room.in_progress = true
 		room.layout = layout
+		room.whichTurn = room.turn_order[0]
+		room.clear_board()
 		
-		console.table(layout)
-
-		this.broadcast_info(room.id, 'layout')
-		this.broadcast_info(room.id, 'turn')
+		// console.table(layout)
+		room.send_hands(true)
+		room.send_info()
 	}
 
 	// En handling som kun ejeren kan tage går igennem her.

@@ -1,29 +1,18 @@
 <script>
 	import { fade, fly } from 'svelte/transition'
-	import { onMount } from 'svelte'
+	import { me } from './stores'
 	let promptLogin = false
 	let valid_input = null
 	let input_field	// Reference til input elementet. Den skal nok selv finde det :)
 
 	let username = ''
 
-	onMount(() => {
-		let maybe_name = localStorage.getItem('username')
-		if (maybe_name && maybe_name.length > 2)
-
-		var interval_id = setInterval(() => {
-			if (input_field) {
-				input_field.value = maybe_name
-				socket.emit('check_username', maybe_name)
-				clearInterval(interval_id)
-				return
-			}
-		}, 100);
-	})
-
 	$: {
-		if (promptLogin && input_field)
+		if (promptLogin && input_field) {
 			input_field.focus()
+			input_field.value = localStorage.getItem('username')
+			socket.emit('check_username', input_field.value)
+		}
 	}
 	
 
@@ -58,7 +47,10 @@
 		socket.emit('reconnect', localStorage.getItem('uuid'))
 	})
 	socket.on('prompt_login', () => promptLogin = true)
-	socket.on('logged-in', _username => localStorage.setItem('username', _username))
+	socket.on('logged-in', _username => {
+		localStorage.setItem('username', _username)
+		$me = _username
+	})
 
 	socket.on('name_requirements', data => {
 		if (!input_field) return
@@ -78,6 +70,8 @@
 		localStorage.setItem('uuid', uuid)
 		localStorage.setItem('username', username)
 		promptLogin = false
+
+		$me = username
 
 		// Skal fjernes --------
 		// if (username == 'Rasmus')
