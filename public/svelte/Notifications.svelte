@@ -1,5 +1,6 @@
 <script>
 	import { fly } from 'svelte/transition'
+	import { me } from './stores';
 
 	let messages = []
 	let notif_count = 0
@@ -26,6 +27,9 @@
 		}
 		else if (event == 'kicked') {
 			msg.title = 'Ejeren kickede dig :('
+		}
+		else if (event == 'turn') {
+			msg.title = 'Det er din tur'
 		}
 
 		msg._id = ++notif_count
@@ -62,6 +66,18 @@
 	
 	socket.on('request_join', user => {
 		new_message('request_invitation', user)
+	})
+
+	socket.on('turn', turn => {
+		for (let i in messages) {
+			if (messages[i].title == 'Det er din tur') {
+				remove_notif(messages[i]._id)
+			}
+		}
+		if (turn == $me) {
+			new_message('turn')
+		}
+
 	})
 	
 	socket.on('locked', state => {
@@ -105,6 +121,7 @@
 	}
 
 	.msg {
+		z-index: 4;
 		color: white;
 		background: #262625;
 		padding: 1rem;

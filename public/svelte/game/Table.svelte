@@ -1,21 +1,35 @@
 <script>
 	import { fly } from 'svelte/transition'
+	import { selected_card, show_hand } from '../stores'
+	import ListPlayers from './ListPlayers.svelte';
 
 	let teams = {
-		top: ['Rasmus'],
-		right: ['Rasmus', 'Rasmus'],
-		bottom: ['Rasmus', 'Rasmus', 'Rasmus'],
-		left: ['Rasmus', 'Rasmus', 'Rasmus', 'Rasmus']
+		top: [],
+		right: [],
+		bottom: [],
+		left: []
 	}
 
 	let which_turn
 	
 	let amount_of_rotation = 90
 
-	let visible = false
-	setTimeout(() => visible = true, 500)
+	let visible = true
+	// setTimeout(() => visible = true, 500)
 
+	let cards_unmodified = []
 	let cards = []
+
+
+	const click_on_card = card_id => {
+		let coordinat = String(card_id/10)
+		let yx = (coordinat.includes('.')) ? coordinat.split('.'):[coordinat, 0]
+		let card = cards_unmodified[yx[0]][yx[1]]
+
+		socket.emit('use_card', card, yx)
+		// $show_hand = false
+		$selected_card = ''
+	}
 
 	socket.on('layout', layout => {
 		teams = layout
@@ -25,11 +39,16 @@
 		which_turn = turn
 	})
 
-	socket.on('cards', board => {
+	socket.on('board', board => {
+		cards = []
+		
 		for (var i = 0; i < Object.keys(board).length; i++) {
-			board[i].forEach(card => cards.push(card.card))
+			board[i].forEach(card => cards.push(card))
 		}
-		console.log(cards)
+
+		cards_unmodified = board
+		
+		cards = cards
 	})
 
 	socket.on('start:response', data => {
@@ -41,24 +60,7 @@
 	let innerHeight
 	let cardHolder
 
-	$: {
-		let a = innerHeight + innerWidth
 
-		if (cardHolder) {
-			let height = window.getComputedStyle(cardHolder).height.split('px')[0]
-			console.log(Number(height))
-
-			let children = cardHolder.querySelectorAll('div')
-
-			for (let child of children) {
-				let svg = child.querySelector('img')
-				svg.style.height = height/10 + 'px'
-			}
-
-			// var r = document.querySelector(':root');
-			// r.style.setProperty('--card-height', `${height/10}px`)
-		}
-	}
 
 	
 
@@ -70,40 +72,34 @@
 	<div class="middle" style="align-items: end;">
 		<div></div>
 		<div class="top top-bottom" style="grid-template-columns: repeat({teams.top.length}, 1fr);">
-			{#each teams.top as player}
-			<p class='player'> { player } </p>
-			{/each}
+			<ListPlayers team={ teams.top }/>
 		</div>
 		<div></div>
 	</div>
 	<div class="middle">
 		<div class="left grid" style="grid-template-rows: repeat({teams.left.length}, 1fr);">
-			{#each teams.left as player}
-			<p style="transform: rotate(-{ amount_of_rotation }deg);" class='player'> { player } </p>
-			{/each}
+			<ListPlayers team={ teams.left } rotation={ -amount_of_rotation }/>
 		</div>
 		<div class="table">
 			<div class="cardHolder">
-				{#each cards as card}
-				<div style="background-image: url('/cards/{card}.svg')">
-					<img class="token" src="/images/tokenRed.svg">
+				{#each cards as { card, token }, index}
+				<div on:click={ () => click_on_card(index) } id="{ $selected_card == card ? 'selectable':'hoverable'}" style="background-image: url('/cards/{card}.svg')">
+					{#if token}
+						<img class="token" src="/images/token{ token[0].toUpperCase() + token.slice(1) }.svg" alt="{card}">
+					{/if}
 				</div>
 				{/each}
 			</div>
 
 		</div>
 		<div class="right grid" style="grid-template-rows: repeat({teams.right.length}, 1fr);">
-			{#each teams.right as player}
-			<p style="transform: rotate({ amount_of_rotation }deg);" class='player'> { player } </p>
-			{/each}
+			<ListPlayers team={ teams.right } rotation={ amount_of_rotation }/>
 		</div>
 	</div>
 	<div class="middle" style="align-items: start;">
 		<div></div>
 		<div class="bottom top-bottom" style="grid-template-columns: repeat({teams.bottom.length}, 1fr);">
-			{#each teams.bottom as player}
-			<p class='player'> { player } </p>
-			{/each}
+			<ListPlayers team={ teams.bottom }/>
 		</div>
 		<div></div>
 	</div>
@@ -119,24 +115,6 @@
 	--card-height: 20px;
 }
 @import "./responsive_layout";
-
-.player {
-	color: #fff;
-	border-radius: 5px;
-	padding: .5rem;
-
-	#blue {
-		background: #144aca;
-	}
-
-	#red {
-		background: #c72f2f;
-	}
-
-	#green {
-		background: #268426;;
-	}
-}
 
 .grid {
 	display: grid;
@@ -168,6 +146,26 @@
 			width: 100%;
 			height: 100%;
 
+			#hoverable {
+				&:hover {
+					cursor: pointer;
+					margin: -10px -14px;
+					z-index: 1;
+				}
+			}
+
+			#selectable {
+				box-shadow: 0px 0 39px 23px #000;//#c1b824;
+				// border: 8px solid #000;
+				border-radius: 5px;
+				margin: -10px -14px;
+				z-index: 1;
+
+				&:hover {
+					cursor: pointer;
+				}
+			}
+
 			div {
 				margin: 2px;
 				display: flex;
@@ -176,6 +174,9 @@
 				background-repeat: no-repeat;
 				background-position: center;
 				background-size: contain;
+
+				transition: box-shadow .3s, margin .3s;
+
 				.token {
 					width: 70%;
 					height: 70%;

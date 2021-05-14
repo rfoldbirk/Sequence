@@ -35,7 +35,7 @@ io.on("connection", (socket) => {
 	
 	// Vi tilbyder en lille pakke, som begge mock-databaser bruger til at holde styr på den nuværende forbindelse
 	let con_pkg = { io, socket, current_player: undefined }
-	socket.emit("cards", board)
+	socket.emit("board", board)
 	// Fortæller klienten hvilke spillere er forbundet.
 	Players.send_all_connected_players(socket)
 	// ------ Spiller relaterede handlinger ------ //
@@ -62,7 +62,8 @@ io.on("connection", (socket) => {
 	socket.on('kick', target_user => Rooms.owner_action(con_pkg, 'kick', target_user))
 	socket.on('start', () => Rooms.owner_action(con_pkg, 'start', false))
 	// -------- Game relaterede handlinger -------- //
-	socket.on("use_card", card => Rooms.useCard(con_pkg, card))
+	socket.on("use_card", (card, yx) => Rooms.useCard(con_pkg, card, yx))
+	socket.on("draw_card", () => Rooms.draw_card(con_pkg))
 	// ------------------ Debug ------------------ //
 	socket.on('users', () => Players.test(con_pkg))
 })
