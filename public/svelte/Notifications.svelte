@@ -21,6 +21,9 @@
 				event: 'join_lobby',
 				data: target
 			}
+			// setTimeout(() => {
+			// 	accept(msg.action.event, msg.action.data, msg._id)
+			// }, 200);
 		}
 		else if (event == 'locked') {
 			msg.title = (target) ? 'Ejeren har låst dit hold':'Ejeren har låst op for valg af hold'
@@ -30,6 +33,9 @@
 		}
 		else if (event == 'turn') {
 			msg.title = 'Det er din tur'
+		}
+		else if (event == 'beam') {
+			msg.title = target + ' på stribe!'
 		}
 
 		msg._id = ++notif_count
@@ -79,6 +85,8 @@
 		}
 
 	})
+
+	socket.on('beam', length => new_message('beam', length))
 	
 	socket.on('locked', state => {
 		new_message('locked', state)
@@ -118,6 +126,7 @@
 		width: 300px;
 		right: 0;
 		bottom: 15px;
+		z-index: 4;
 	}
 
 	.msg {

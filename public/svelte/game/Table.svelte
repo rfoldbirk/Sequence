@@ -26,12 +26,14 @@
 		let yx = (coordinat.includes('.')) ? coordinat.split('.'):[coordinat, 0]
 		let card = cards_unmodified[yx[0]][yx[1]]
 
-		socket.emit('use_card', card, yx)
+		socket.emit('use_card', yx)
 		// $show_hand = false
 		$selected_card = ''
 	}
 
 	socket.on('layout', layout => {
+		if (!layout) return
+
 		teams = layout
 	})
 

@@ -62,8 +62,9 @@ io.on("connection", (socket) => {
 	socket.on('kick', target_user => Rooms.owner_action(con_pkg, 'kick', target_user))
 	socket.on('start', () => Rooms.owner_action(con_pkg, 'start', false))
 	// -------- Game relaterede handlinger -------- //
-	socket.on("use_card", (card, yx) => Rooms.useCard(con_pkg, card, yx))
+	socket.on("use_card", yx => Rooms.useCard(con_pkg, yx))
 	socket.on("draw_card", () => Rooms.draw_card(con_pkg))
+	socket.on('pass', () => Rooms.pass(con_pkg))
 	// ------------------ Debug ------------------ //
 	socket.on('users', () => Players.test(con_pkg))
 })

@@ -224,7 +224,6 @@ class Rooms extends Game_functions {
 			
 			if (players_left <= 0) {
 				key = new_value(layout, key, (amount_of_teams == 2) ? true:false)
-				// console.log('\x1b[36m%s\x1b[31m%s\x1b[0m%s\x1b[31m [%s]\x1b[0m', player, ' -> ', key, players_left)
 				players_left += standard_amount_of_players
 			}
 			layout[key].push(player)
@@ -238,6 +237,7 @@ class Rooms extends Game_functions {
 			room.turn_order.push(player)
 		}
 		
+		room.amount_of_teams = amount_of_teams
 		room.in_progress = true
 		room.layout = layout
 		room.whichTurn = room.turn_order[0]
@@ -280,6 +280,8 @@ class Rooms extends Game_functions {
 
 		let room = this.find('id', current_player.room_id)
 		if (!room) return
+
+		if (room.in_progress) return
 
 		for (let player of room.players) {
 			if (player.username != name) continue

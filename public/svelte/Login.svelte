@@ -62,6 +62,10 @@
 
 		// Skal fjernes --------
 		// if (valid_input) click()
+		// setTimeout(() => {
+		// 	if (localStorage.getItem('username') != 'Privat')
+		// 		socket.emit('invite', 'Privat')
+		// }, 500);
 		// ---------------------
 	})
 
