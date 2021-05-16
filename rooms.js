@@ -239,6 +239,8 @@ class Rooms extends Game_functions {
 		
 		room.amount_of_teams = amount_of_teams
 		room.in_progress = true
+		room.ended = false
+		room.pass_in_row = 0
 		room.layout = layout
 		room.whichTurn = room.turn_order[0]
 		room.clear_board()

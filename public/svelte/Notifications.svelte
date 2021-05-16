@@ -41,9 +41,6 @@
 		msg._id = ++notif_count
 		messages = [...messages, msg]
 
-		// Skal fjernes ----------------------------------
-		// accept(msg.action.event, msg.action.data, msg._id)
-		// -----------------------------------------------
 
 		setTimeout(() => {
 			remove_notif(msg._id)

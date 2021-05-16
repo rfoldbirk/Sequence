@@ -46,6 +46,7 @@ const directions = {
 class Game_meta {
 	constructor() {
 		this.in_progress = false
+		this.ended = false
 		this.cards
 		this.whichTurn
 
@@ -179,22 +180,26 @@ class Game_meta {
 				this.assign_direction(yx, dir0, dir1)
 
 				if (action == 'add') {
+					console.log('\nadding points:', Math.floor(_count/5))
+					
 					this.points[color] += Math.floor(_count/5)
 					this.broadcast('beam', Math.floor(_count/5)*5)
-
+					
+					console.log('points is now:', this.points)
 
 					// Tjekker om der er en vinder
 					if (this.amount_of_teams == 2) {
 						if (this.points[color] == 2) {
 							this.broadcast('winner', color)
+							this.ended = true
 						}
 					}
 					else if (this.amount_of_teams == 3) {
 						if (this.points[color] == 1) {
 							this.broadcast('winner', color)
+							this.ended = true
 						}
 					}
-
 				}
 			}
 
@@ -211,7 +216,6 @@ class Game_meta {
 				this.board[yx[0]][yx[1]]._beam_count = 0
 				this.assign_direction(yx, dir0, dir1, true)
 
-				this.points[color] -= 1
 				if (this.points[color] < 0) this.points[color] = 0
 			}
 		}
@@ -266,6 +270,32 @@ class Game_functions extends Database {
 		room.next_turn(con_pkg.current_player)
 
 		room.pass_in_row += 1
+
+		console.log('passes in a row:', room.pass_in_row)
+
+		if (room.pass_in_row > room.pass_limit) {
+
+			console.log('\nfinding winner!')
+
+			// Find vinder
+			let winnerTeam = ''
+			let winnerScore = 0
+
+			for (const teamColor of Object.keys(room.points)) {
+				if (room.points[teamColor] > winnerScore) {
+					winnerScore = room.points[teamColor]
+					winnerTeam = teamColor
+				}
+				else if (room.points[teamColor] == winnerScore) {
+					winnerTeam += '|teamColor' // Bare så man kan adskille dem
+				}
+			}
+
+			if (winnerTeam == '') winnerTeam = 'nobody'
+
+			room.ended = true
+			room.broadcast('winner', winnerTeam)
+		}
 	}
 
 	check_if_player_is_permitted(con_pkg, dont_check_if_its_my_turn) {
@@ -274,6 +304,7 @@ class Game_functions extends Database {
 
 		let room = this.find('id', current_player.room_id)
 		if (!room) return false
+		if (room.ended) return false
 
 		// Det skal være spillerens tur
 		if (!dont_check_if_its_my_turn)
@@ -297,6 +328,7 @@ class Game_functions extends Database {
 		// Tjekker om spilleren er i rummet, og om det er spillerens tur. Plus den returnerer rummet
 		const room = this.check_if_player_is_permitted(con_pkg)
 		if (!room) return
+		if (room.ended) return
 
 		// Der kan ske 2 ting.
 
@@ -330,9 +362,9 @@ class Game_functions extends Database {
 			card = this.check_if_has_11(current_player, 'sh') // Tjekker om spilleren har en en-øjet knægt
 			if (_unlimited_turned_off) {
 				if (location.token == current_player.gameData.teamColor) return // Hvis den token, som spilleren prøver at fjerne er hans egen, for spilleren ikke lov.
-				const amount = room.check_for_win(yx, location.token, 'check')
-				if (amount > 0) return // Burde gerne gøre sådan at man ikke kan fjerne en brik, som er en del af en sequence
 			}
+			const amount = room.check_for_win(yx, location.token, 'check')
+			if (amount > 0) return // Burde gerne gøre sådan at man ikke kan fjerne en brik, som er en del af en sequence
 			
 		}
 
@@ -341,9 +373,11 @@ class Game_functions extends Database {
 		
 		
 		// ----------------------------------------------------- Brug kort ----------------------------------------------------- //
+		this.pass_in_row = 0 // Nulstiller
+
 		location.token = action == 'add' ? current_player.gameData.teamColor : null
 		location._beam_count = 0
-		
+
 		room.check_for_win(yx, current_player.gameData.teamColor, action)
 		if (action == 'remove') { // Easy fiks, gider ikke at gøre mere nu
 			location._direction = ''
