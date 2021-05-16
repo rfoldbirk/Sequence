@@ -1,6 +1,6 @@
 <script>
 	import { fly } from 'svelte/transition'
-	import { me } from './stores';
+	import { me, players } from './stores';
 
 	let messages = []
 	let notif_count = 0
@@ -36,6 +36,10 @@
 		}
 		else if (event == 'beam') {
 			msg.title = target + ' på stribe!'
+		}else if(event == 'game_lost'){
+			msg.title = `Vinderen af spillet er hold ${target}`
+		}else if(event == 'game_won'){
+			msg.title = `Du har vundet spillet!!!`
 		}
 
 		msg._id = ++notif_count
@@ -61,8 +65,18 @@
 		}
 		messages = messages
 	}
-
-
+	socket.on('winner', color => {
+		if(color.includes("|")){
+			new_message("game_lost", color)
+		}
+		$players.forEach(player => {
+			if(player.username == $me && player.gameData.teamColor == color){
+				new_message("game_won", color)
+			}else{
+				new_message("game_lost", color)
+			}
+		})
+	})
 	socket.on('invite_from', user => {
 		new_message('game_invite', user)
 	})

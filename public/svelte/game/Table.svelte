@@ -1,8 +1,7 @@
 <script>
 	import { fly } from 'svelte/transition'
-	import { selected_card, show_hand } from '../stores'
+	import { selected_card, show_hand, players, me } from '../stores'
 	import ListPlayers from './ListPlayers.svelte';
-
 	let teams = {
 		top: [],
 		right: [],
@@ -36,12 +35,41 @@
 
 		teams = layout
 	})
-
+	function winner() {
+		document.querySelectorAll("audio")[2].play()
+		var wingif = document.createElement("img");
+		wingif.src = "/images/confetti.gif"
+		wingif.alt = "confetti"
+		wingif.style.position = "absolute";
+		wingif.style.height = "100%";
+		wingif.style.width = "100%";
+		wingif.style.top = "0";
+		document.body.append(wingif)
+		setTimeout(function() {
+			wingif.remove();
+		}, 10000);
+	}
+	socket.on('winner', color => {
+		if(color.includes("|")){
+			document.querySelectorAll("audio")[1].play()
+		}
+		$players.forEach(player => {
+			if(player.username == $me && player.gameData.teamColor == color){
+				winner()
+			}else{
+				document.querySelectorAll("audio")[1].play()
+			}
+		})
+	})
 	socket.on('turn', turn => {
 		which_turn = turn
 	})
 
 	socket.on('board', board => {
+		document.querySelector("audio").currentTime = 0;
+		document.querySelector("audio").play();
+		console.log("try to play sound move")
+
 		cards = []
 		
 		for (var i = 0; i < Object.keys(board).length; i++) {
@@ -67,6 +95,19 @@
 	
 
 </script>
+
+<audio id="moveSound" class="audio" controls>
+	<source src="/sounds/move.mp3" type="audio/mpeg"/>
+	Your browser does not support the audio tag.
+</audio>
+<audio id="lostSound" class="audio" controls>
+	<source src="/sounds/lost.mp3" type="audio/mpeg"/>
+	Your browser does not support the audio tag.
+</audio>
+<audio id="winnerSound" class="audio" controls>
+	<source src="/sounds/winner.wav" type="audio/mpeg"/>
+	Your browser does not support the audio tag.
+</audio>
 
 
 {#if visible}
@@ -117,6 +158,13 @@
 	--card-height: 20px;
 }
 @import "./responsive_layout";
+
+.audio {
+	display: none;
+	position: absolute;
+	height: 0px;
+	width: 0px;
+}
 
 .grid {
 	display: grid;

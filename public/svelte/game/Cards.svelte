@@ -61,6 +61,9 @@
 			<img transition:fly={{x:-1400, y: -1000, duration:  800 }} on:mouseenter={ () => { has_hovered = true; $selected_card = card; } } on:click={ ()=>use_special(card) } src="/cards/{card}.svg" alt={card}>
 		{/each}
 	</div>
+	{#if cards.length > 0}
+		<button on:click={ () => socket.emit('pass') } class="skipTurn">Spring din tur over</button>
+	{/if}
 </div>
 
 
@@ -68,6 +71,17 @@
 
 
 <style lang="scss">
+	.skipTurn {
+		border: 1px solid black;
+	    padding: 8px 15px;
+	    border-radius: 5px;
+	    background: #c72f2f;
+	    color: #fff;
+	    font-size: 1rem;
+	    position: absolute;
+	    left: 0;
+	    bottom: 28%;
+	}
 	.extraCard {
 	    position: absolute;
 	    height: 9%;

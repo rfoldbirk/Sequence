@@ -60,7 +60,11 @@ class Game_meta {
 		this.availableCards = this.makeCardArray()
 		this.usedCards = [];
 		this.board
-		this.points = { 'blue': 0, 'red': 0, 'green': 0 }
+		this.points = {
+			'blue': 0,
+			'red': 0,
+			'green': 0
+		}
 		this.clear_board() // Loader boardet
 	}
 	makeCardArray() {
@@ -113,7 +117,6 @@ class Game_meta {
 		this.broadcast('board', this.board)
 
 		this.broadcast('points', this.points)
-
 		for (const player of this.players)
 			player.send_message('hand', player.gameData.cards)
 	}
@@ -132,7 +135,7 @@ class Game_meta {
 		this.board = JSON.parse(String(fs.readFileSync("./board.json")))
 	}
 
-	assign_direction(yx, dir0, dir1, remove=false) {
+	assign_direction(yx, dir0, dir1, remove = false) {
 		// Det er en lidt grim funktion, så vi gemmer den lidt væk
 
 		const dir = this.board[yx[0]][yx[1]]._direction
@@ -142,10 +145,9 @@ class Game_meta {
 				this.board[yx[0]][yx[1]]._direction = `-${ dir0 }-${ dir1 }-`
 			} else {
 				if (!dir.includes(`-${ dir0 }-${ dir1 }-`))
-				this.board[yx[0]][yx[1]]._direction += `-${ dir0 }-${ dir1 }-`
+					this.board[yx[0]][yx[1]]._direction += `-${ dir0 }-${ dir1 }-`
 			}
-		}
-		else {
+		} else {
 			if (dir) {
 				let split = dir.split(`-${ dir0 }-${ dir1 }-`)
 				let index = split.indexOf(`-${ dir0 }-${ dir1 }-`)
@@ -165,7 +167,7 @@ class Game_meta {
 			if (i > 3) return sequences
 
 			const dir0 = Object.keys(directions)[i]
-			const dir1 = Object.keys(directions)[Number(i)+4]
+			const dir1 = Object.keys(directions)[Number(i) + 4]
 
 			const res0 = this.beam(yx, dir0, color, action)
 			const res1 = this.beam(yx, dir1, color, action)
@@ -173,18 +175,18 @@ class Game_meta {
 			const _count = res0._count + res1._count + 1
 			const _beam_count = (res0._beam_count > res1._beam_count) ? res0._beam_count : res1._beam_count
 
-			
-			if ( _count >= _beam_count*5 && _beam_count < Math.floor(_count/5)) {
-				
-				this.board[yx[0]][yx[1]]._beam_count = Math.floor( _count/5 )
+
+			if (_count >= _beam_count * 5 && _beam_count < Math.floor(_count / 5)) {
+
+				this.board[yx[0]][yx[1]]._beam_count = Math.floor(_count / 5)
 				this.assign_direction(yx, dir0, dir1)
 
 				if (action == 'add') {
-					console.log('\nadding points:', Math.floor(_count/5))
-					
-					this.points[color] += Math.floor(_count/5)
-					this.broadcast('beam', Math.floor(_count/5)*5)
-					
+					console.log('\nadding points:', Math.floor(_count / 5))
+
+					this.points[color] += Math.floor(_count / 5)
+					this.broadcast('beam', Math.floor(_count / 5) * 5)
+
 					console.log('points is now:', this.points)
 
 					// Tjekker om der er en vinder
@@ -193,8 +195,7 @@ class Game_meta {
 							this.broadcast('winner', color)
 							this.ended = true
 						}
-					}
-					else if (this.amount_of_teams == 3) {
+					} else if (this.amount_of_teams == 3) {
 						if (this.points[color] == 1) {
 							this.broadcast('winner', color)
 							this.ended = true
@@ -223,38 +224,49 @@ class Game_meta {
 		return sequences
 	}
 
-	beam(yx, direction, color, action='add', _count=0, _beam_count=0, _first=true) {
+	beam(yx, direction, color, action = 'add', _count = 0, _beam_count = 0, _first = true) {
 		const location = this.board[yx[0]][yx[1]]
 		const direction_val = directions[direction]
-		
+
 		if (location.token == color || location.card == 'buffer' || 'remove'.includes(action)) {
 
-			const new_yx = [ String(Number(yx[0]) + direction_val.y), String(Number(yx[1]) + direction_val.x) ]
-			
+			const new_yx = [String(Number(yx[0]) + direction_val.y), String(Number(yx[1]) + direction_val.x)]
+
 			if (!_first) {
-				_count ++
-	
+				_count++
+
 				if (Number(location._beam_count) > _beam_count && String(location._direction).includes(`-${direction}-`)) {
 					_beam_count = location._beam_count
-					
+
 					if (action == 'remove') {
 						this.check_for_win(yx, color, 'delete')
-						return { _count: 0, _beam_count: 0 }
+						return {
+							_count: 0,
+							_beam_count: 0
+						}
 					}
 				}
 			}
 
 
 			if (new_yx[0].includes('-') || new_yx[1].includes('-'))
-				return { _count, _beam_count }
+				return {
+					_count,
+					_beam_count
+				}
 			else if (Number(new_yx[0]) > 9 || Number(new_yx[1]) > 9)
-				return { _count, _beam_count }
+				return {
+					_count,
+					_beam_count
+				}
 			return this.beam(new_yx, direction, color, action, _count, _beam_count, false)
+		} else {
+			return {
+				_count,
+				_beam_count
+			}
 		}
-		else {
-			return { _count, _beam_count }
-		}
-	} 
+	}
 }
 
 
@@ -285,8 +297,7 @@ class Game_functions extends Database {
 				if (room.points[teamColor] > winnerScore) {
 					winnerScore = room.points[teamColor]
 					winnerTeam = teamColor
-				}
-				else if (room.points[teamColor] == winnerScore) {
+				} else if (room.points[teamColor] == winnerScore) {
 					winnerTeam += '|teamColor' // Bare så man kan adskille dem
 				}
 			}
@@ -299,7 +310,9 @@ class Game_functions extends Database {
 	}
 
 	check_if_player_is_permitted(con_pkg, dont_check_if_its_my_turn) {
-		let { current_player } = con_pkg
+		let {
+			current_player
+		} = con_pkg
 		if (!current_player) return false
 
 		let room = this.find('id', current_player.room_id)
@@ -318,13 +331,15 @@ class Game_functions extends Database {
 		// Tjekker om spilleren har en knægt på hånden
 		for (let type of types)
 			if (current_player.gameData.cards.includes(`${type}11`))
-				return type+'11'
+				return type + '11'
 		return false
 	}
 
 	useCard(con_pkg, yx) {
-		let { current_player } = con_pkg
-		
+		let {
+			current_player
+		} = con_pkg
+
 		// Tjekker om spilleren er i rummet, og om det er spillerens tur. Plus den returnerer rummet
 		const room = this.check_if_player_is_permitted(con_pkg)
 		if (!room) return
@@ -333,31 +348,30 @@ class Game_functions extends Database {
 		// Der kan ske 2 ting.
 
 		// 1. Spilleren trykker på et kort, som er tomt, og vil derfor lægge et kort...
-			// 1. Spilleren har kortet på hånden
-			// 2. Spilleren har ikke kortet på hånden, men til gengæld har han en to øjet knægt på hånden.
+		// 1. Spilleren har kortet på hånden
+		// 2. Spilleren har ikke kortet på hånden, men til gengæld har han en to øjet knægt på hånden.
 		// 2. Spilleren trykker på et kort, som IKKE er tomt, og prøver derfor at fjerne det.
-			// Tjek om spilleren har en en øjet knægt på hånden
-			// Tjek om spilleren prøver at fjerne sin egen token.
+		// Tjek om spilleren har en en øjet knægt på hånden
+		// Tjek om spilleren prøver at fjerne sin egen token.
 
 		const location = room.board[yx[0]][yx[1]] // Indeholder: card, token
-		const action = location.token ? 'remove':'add'
+		const action = location.token ? 'remove' : 'add'
 
 		if (location.card == 'buffer') return
 
 		// -------------------------- Find det kort, som skal bruges afhængigt af hvad der skal gøres -------------------------- //
 		let card // Det kort som skal bruges
-		
+
 		if (action == 'add') {
 			card = this.check_if_has_11(current_player, 'dc') // Tjekker om spilleren har en to-øjet knægt
-			
+
 			// Hvis spilleren har det kort han prøver at lægge en token på, prioteres dette kort og bruges i stedet
 			for (const _card of current_player.gameData.cards) {
 				if (_card == location.card) {
 					card = _card
 				}
 			}
-		}
-		else {
+		} else {
 			// remove
 			card = this.check_if_has_11(current_player, 'sh') // Tjekker om spilleren har en en-øjet knægt
 			if (_unlimited_turned_off) {
@@ -365,13 +379,13 @@ class Game_functions extends Database {
 			}
 			const amount = room.check_for_win(yx, location.token, 'check')
 			if (amount > 0) return // Burde gerne gøre sådan at man ikke kan fjerne en brik, som er en del af en sequence
-			
+
 		}
 
 		if (_unlimited_turned_off)
 			if (!card) return // Hvis spilleren ikke har et kort på hånden som matcher, kommer han ikke længere!
-		
-		
+
+
 		// ----------------------------------------------------- Brug kort ----------------------------------------------------- //
 		this.pass_in_row = 0 // Nulstiller
 
@@ -383,15 +397,15 @@ class Game_functions extends Database {
 			location._direction = ''
 			location._beam_count = 0
 		}
-	
+
 
 		// ----------------------------------------------------- Fjern kort ---------------------------------------------------- //
 		if (_unlimited_turned_off) {
 			const index = current_player.gameData.cards.indexOf(card)
 			current_player.gameData.cards.splice(index, 1)
 		}
-		
-		
+
+
 		// ------------------------------------------------- Opdater spillerene ------------------------------------------------ //
 		if (_unlimited_turned_off)
 			room.next_turn(current_player)
@@ -418,7 +432,8 @@ class Game_functions extends Database {
 			current_player.gameData.cards.push(card)
 			current_player.gameData.canDraw = false
 
-			room.send_info()
+			for (const player of room.players)
+				player.send_message('hand', player.gameData.cards)
 		}
 	}
 }
