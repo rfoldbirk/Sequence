@@ -1,7 +1,11 @@
 <script>
+	//importere fly animation fra svelte transition
 	import { fly } from 'svelte/transition'
+	//importere selected_card, show_hand, players & me fra stores, så de også kan bruges i dette dokument
 	import { selected_card, show_hand, players, me } from '../stores'
+	//importere filen ListPlayers
 	import ListPlayers from './ListPlayers.svelte';
+	//objet til opstillingen af teams
 	let teams = {
 		top: [],
 		right: [],
@@ -9,78 +13,135 @@
 		left: []
 	}
 
+	//variable til at holde styr på hvis tur det er
 	let which_turn
 	
+	//variable til at vælge hvor meget et team skal roteres
 	let amount_of_rotation = 90
 
+	//boolean til at styre hvornår table skal vises
 	let visible = true
 	// setTimeout(() => visible = true, 500)
 
+	//array til at holde Board information - bliver ændret til et objekt når hjemmesiden kører
 	let cards_unmodified = []
+
+	//array til at holde kortene
 	let cards = []
 
-
+	//fuction som bliver kaldt når der bliver kliket på et kort og modtager card_id, på det kort man trykkede på
 	const click_on_card = card_id => {
+		//variable til at holde en streng af card_id/10
 		let coordinat = String(card_id/10)
+		
+		/*Laver et array ud fra coordinat strengen, hvis coordinat indeholder et punktum som fx 21/10 = 2.1
+		så bliver strengen splittet op i 2 så arrayet bliver til [2, 1], hvis strengen derimod ikke indeholder et punktum
+		så bliver arrayet til [coordinat, 0]*/
 		let yx = (coordinat.includes('.')) ? coordinat.split('.'):[coordinat, 0]
+		
+		//henter kortet fra objektet cards_unmodified udfra xy arrayet
 		let card = cards_unmodified[yx[0]][yx[1]]
 
+		//sender en besked til serveren om at den skal bruge kortet på denne position
 		socket.emit('use_card', yx)
 		// $show_hand = false
 		$selected_card = ''
 	}
-
+	//lytter efter beskeden "layout"
 	socket.on('layout', layout => {
+		//hvis den ikke modtager et layout stopper funktionen
 		if (!layout) return
 
+		//sætter teams til det modtaget layout
 		teams = layout
 	})
+
+	//funktion der bliver kaldt når en/et spiller/hold vinder spillet
 	function winner() {
+		//finder lyden i DOM-elementet og afspiller den
 		document.querySelectorAll("audio")[2].play()
+
+		//opretter et image-element
 		var wingif = document.createElement("img");
+		
+		//sætter kilden til billedet til at være vores winner gif
 		wingif.src = "/images/confetti.gif"
+		
+		//sætter en alt information
 		wingif.alt = "confetti"
+		
+		//sætter css position til absolute
 		wingif.style.position = "absolute";
+		
+		//sætter css height til 100%
 		wingif.style.height = "100%";
+
+		//sætter css width til 100%
 		wingif.style.width = "100%";
+
+		//sætter css top til 0, så den sidder i toppen
 		wingif.style.top = "0";
+
+		//tilføjer vinder-animationen til hjemmesiden
 		document.body.append(wingif)
+
+		//en timeout funktion der fjerner vinder-animation efter 10 sekunder
 		setTimeout(function() {
 			wingif.remove();
 		}, 10000);
 	}
+
+	//lytter efter beskeden "winner"
 	socket.on('winner', color => {
+		//if-statement som tjekker om color indeholder en "|", hvis den gør dette er spillet uafgjort
 		if(color.includes("|")){
+			//spiller lyden til når spillet af tabt
 			document.querySelectorAll("audio")[1].play()
 		}
+		//for-loop af players
 		$players.forEach(player => {
+			//if-statement som tjekker om man har vundet eller ej
 			if(player.username == $me && player.gameData.teamColor == color){
+				//hvis player.username er det samme som me, så er det den rigtige "player" vi har fat i
+				//og hvis spillerens farve er den samme som winner farven, så bliver "winner" funktionen kaldt
 				winner()
 			}else{
+				//ellers bliver taber-lyden afspillet
 				document.querySelectorAll("audio")[1].play()
 			}
 		})
 	})
+	//lytter efter beskeden "turn"
 	socket.on('turn', turn => {
+		//når den modtager beskeden sætter den which_turn til turn
 		which_turn = turn
 	})
 
+	//lytter efter beskeden "board"
 	socket.on('board', board => {
+		//finder lyden til når man placere en brik, fra DOM-elementet
+		//og sætter currentTime til 0
 		document.querySelector("audio").currentTime = 0;
+		
+		//og afspiller lyden
 		document.querySelector("audio").play();
-		console.log("try to play sound move")
 
+		//nulstiller cards arrayet til defualt
 		cards = []
 		
+		//for-loop der kører igennem board-objektet
 		for (var i = 0; i < Object.keys(board).length; i++) {
+			//tilføjer alle kortene til cards arrayet
 			board[i].forEach(card => cards.push(card))
 		}
 
+		//sætter cards_unmodified til board
 		cards_unmodified = board
-		
+
+		//sætter cards til cards
 		cards = cards
 	})
-
+	
 	socket.on('start:response', data => {
 		console.log('-- START RESPONSE --')
 		console.log(data)
@@ -95,7 +156,7 @@
 	
 
 </script>
-
+<!-- tilføjer lydene til hjemmesiden -->
 <audio id="moveSound" class="audio" controls>
 	<source src="/sounds/move.mp3" type="audio/mpeg"/>
 	Your browser does not support the audio tag.
@@ -109,7 +170,7 @@
 	Your browser does not support the audio tag.
 </audio>
 
-
+<!-- dette svelte-html indeholder selve spillepladen og spillerne omkring -->
 {#if visible}
 <div transition:fly="{{ y: 200, duration: 300 }}" class="table-area">
 	<div class="middle" style="align-items: end;">

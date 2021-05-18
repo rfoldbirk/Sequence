@@ -78,7 +78,7 @@ app.get("/legacy", (req, res) => {
 	res.sendFile(__dirname + '/public/legacy.html')
 })
 
-
+//starter en server på "port"
 http.listen(port, () => {
 	log(`Sequence http://localhost:${ port }`)
 })
@@ -97,42 +97,3 @@ function sort_by_username(a, b) {
 	}
 	return 0
 }
-
-
-
-// ------------------------------ Skal fjernes ------------------------------ //
-
-
-var cardSet = function() {
-	this.availableCards = cards()
-	this.usedCards = []
-}
-
-
-cardSet.prototype.pickRandomCard = function() {
-	log(this.availableCards)
-}
-
-
-function cards() {
-	var availableCards = []
-	var cardArray = ["c", "d", "h", "s"]
-	for (var i = 0; i < cardArray.length; i++) {
-		availableCards = availableCards.concat(makeCardArray(cardArray[i]))
-		availableCards = availableCards.concat(makeCardArray(cardArray[i]))
-	}
-	return availableCards
-}
-
-function makeCardArray(x) {
-	var cards = []
-	for (var i = 1; i < 14; i++) {
-		cards.push(x + i)
-	}
-	return cards
-}
-
-
-
-
-var test = new cardSet()

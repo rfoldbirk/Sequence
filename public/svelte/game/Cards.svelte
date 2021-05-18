@@ -1,46 +1,68 @@
 <script>
+	//importere fly animation fra svelte transition
 	import { fly } from 'svelte/transition'
+
+	//importere selected_card & show_hand, så de også kan bruges i dette dokument
 	import { selected_card, show_hand } from '../stores';
 	
+	//henter full_width fra app.swelte, det er en boolean, hvis den er true er sidebar fremme
 	export let full_width
 	
+	//boolean til at tjekke om man har haft holdt musen over ens egne kort
 	let has_hovered = false
+
+	//boolean til at vælge om hintet til at vise hvordan man ligger en polette skal vises eller ej
 	let show_howto = false
 
+	//hvis man ikke holder musen over ens egne kort inden for 2 sekunder, bliver de gemt væk
 	setTimeout(() => {
 		if (!has_hovered)
 			$show_hand = false
 	}, 2000);
 
+	//array til at holde de kort man modtager fra serveren
 	let cards = []
 
-
+	//funktion som bliver kaldt hvis man klikker på en af ens egne kort
 	const use_special = card => {
+		//show_howto bliver sat til true, og det bliver vist et hint til hvordan man ligger en polette på pladen
 		show_howto = true
 	}
 
+	//funktion som gemmer ens egne kort væk når den bliver kaldt
 	const hide = () => {
 		$selected_card = ''
 		$show_hand = !$show_hand
 	}
 
+	//lytter efter beskeden "hand"
 	socket.on('hand', hand => {
+		//når clienten modtager "hand" fra serveren bliver cards sat til de kort der blev modtaget i hand
 		cards = hand
 	})
 
+	//lytter efter beskeden disconnect
 	socket.on('disconnect', () => {
+		//sætter cards array til at være tom igen
 		cards = []
+
+		//selected_cards bliver sat til en tom streng
 		$selected_card = ''
+
+		//show_hand bliver sat til false for at gemme html'en til cards væk
 		$show_hand = false
 	})
 
+	//lytter efter beskeden "turn"
 	socket.on('turn', who => {
+		//hvis who er det samme username som klienten's, blicer show_hand sat til true, så klienter kan se sine kort
 		if (who == localStorage.getItem('username'))
 			$show_hand = true
 	})
 
 </script>
 
+<!-- dette svelte-html indeholder selve klientens kort, en knap til at trække et nyt kort og til at springe en tur over -->
 <img on:click={ () =>  socket.emit('draw_card') } class="extraCard" src="/cards/cardBack.svg">
 <div class="CardChooser" style="left: { full_width ? '0':'300px' }; height: { $show_hand ? '270px':'45px' } ">
 	{#if show_howto}

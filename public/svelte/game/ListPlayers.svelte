@@ -1,10 +1,14 @@
 <script>
+	//impotere players fra ../stores
 	import { players } from '../stores'
+	//henter team fra table.svelte
 	export let team
+
+	//henter rotation fra table.svelte
 	export let rotation = 0
 </script>
 
-
+<!-- looper igennem team og players og derefter giver dem farver og rotation -->
 {#each team as player}
 	{#each $players as { username, gameData }}
 		{#if player == username}
