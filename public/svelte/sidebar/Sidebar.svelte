@@ -7,10 +7,10 @@
 	let players = []
 
 	onMount(() => {
+		// Så snart denne komponent er klar, spørger den serveren hvor mange spillere der er.
 		socket.emit('players?')
 	})
 
-	
 	socket.on('list_players', _players => {
 		players = _players
 	})

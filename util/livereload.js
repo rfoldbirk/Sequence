@@ -1,3 +1,11 @@
+// Scriptet her holder øje med en specifik mappe, og hver gang en fil bliver gemt,
+// sender den en socket meddelse, via socket.io, som fortæller klienten af en fil er blevet opdateret.
+// Klienten sørger derefter for at hente den nyligt opdaterede fil.
+
+// Enlig løser dette script kun et problem som eksistere under udviklingen.
+// I produktion skal dette slås fra.
+
+
 const { watch } = require('fs')
 
 let _io

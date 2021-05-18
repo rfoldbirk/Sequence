@@ -5,37 +5,44 @@
 	
 	const me = () => { return localStorage.getItem('username') }
 
-
+	// Når den forbinder sætter den arrayet players til at være tomt.
+	// Faktisk er det kun aktuelt hvis serveren stoppes og startes.
 	socket.on('connect', () => $players = [] )
 
+	// En specielt Svelte funktion som bliver kaldt når komponenten er lavet.
 	onMount(() => {
 		socket.emit('room_players?')
 	})
 
-
+	// Endnu en specielt Svelte feature!
+	// En normal funktion som bliver kaldt hver gang en af variablerne inde i 
+	// funktionen bliver opdateret.
 	$: {
 		if ($players.length > 0) {
 			socket.emit('get_owner')
 		}
 	}
 
-	
+	// Små funktioner skrevet hver på en linje.
 	const change_team = name => socket.emit('change_team', name)
 	const leave = () => socket.emit('leave_room')
 	const start_game = () => socket.emit('start')
 	
-	
+	// Serveren fortæller en gang i mellem hvem, som er ejer.
 	socket.on('room_owner', owner => {
 		$isOwner = owner == me()
 	})
 
+	// Hvis serveren fortæller klienten af den skal forlade en lobby
 	socket.on('leave_lobby', () => {
 		$players = []
+		// Fordi at svelte ændre sig efter variablerne er det nok at opdaterer variablen
+		// og så retter alt html'en sig automatisk!
 	})
 
-	// socket.on('turn', () => $in_progress = true)
 
-
+	// Serveren fortæller hvem der er i lobbyen.
+	// Desuden sørger vi for at den aktuelle spiller altid bliver vist først i lobbyen
 	socket.on('lobby_players', player_data => {
 		let new_players = []
 		for (let player of player_data) {
@@ -64,6 +71,7 @@
 		</div>
 
 		<div class="info">
+			<!-- Hver gang players opdatere, vil dette element også opdatere sig! -->
 			<p>{ $players.length } / 12 spillere </p>
 		</div>
 

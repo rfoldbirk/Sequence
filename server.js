@@ -51,7 +51,6 @@ io.on("connection", (socket) => {
 	// -------- Rum relaterede handlinger -------- //
 	socket.on("new_room", () => Rooms.new_room(con_pkg))
 	socket.on("invite", username => Rooms.invite(con_pkg, username))
-	socket.on("room_change_name", name => Rooms.change_name(con_pkg, name))
 	socket.on("join_lobby", owner => Rooms.join(con_pkg, owner))
 	socket.on("leave_room", () => Rooms.leave(con_pkg))
 	socket.on('change_team', username => Rooms.change_team(con_pkg, username))

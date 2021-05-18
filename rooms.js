@@ -14,7 +14,7 @@ class Room extends Game_meta {
 		this.invited = []
 		this.creator = player.username
 
-		// Rummets regler
+		// Rummets regler, bliver faktisk ikke brugt
 		this.permissions = {
 			spectators: true, // Om det er tilladt at være tilskuer til spillet
 			request_spectate: false, // Om folk skal anmode om at være tilskuer
@@ -26,6 +26,7 @@ class Room extends Game_meta {
 		// Game Data ligger i game.js - Game_meta()
 	}
 
+	// Fjerner en spiller fra rummet og sørger for at klienten får at vide at den skal gå ud.
 	remove_player(username) {
 		for (let i in this.players) {
 			if (this.players[i].username == username) {
@@ -42,6 +43,7 @@ class Room extends Game_meta {
 class Rooms extends Game_functions {
 	constructor() { super(rooms) }
 
+	// Laver et nyt rum.
 	new(con_pkg) {
 		const { io, current_player } = con_pkg
 		if (!current_player) return
@@ -49,7 +51,7 @@ class Rooms extends Game_functions {
 		rooms.push(room)
 		
 		current_player.room_id = room.id
-		Players.send_all_connected_players(io)
+		Players.send_all_connected_players(io) // Opdaterer alle klienter, så de ved at der er blevet oprettet et rum.
 
 		// Underretter alle i lobby'en hvilke spillere er forbundet
 		this.broadcast_info(room.id, 'players')
@@ -57,7 +59,8 @@ class Rooms extends Game_functions {
 		return room
 	}
 
-
+	// Funktionen fungerer egentlig bare som en nem måde at hive fat i rummets broadcast funktion.
+	// Den blev lavet da der er brug for at broadcaste spillerne rigtig mange gange.
 	broadcast_info(room_id, type) {
 		let room = this.find('id', room_id)
 		if (!room) return
@@ -107,24 +110,26 @@ class Rooms extends Game_functions {
 		else
 			room = this.find('id', current_player.room_id)
 
-		if (!room) return // Noget gik galt, hvis det her sker... men det burde det ikke
+		if (!room) return // Noget gik galt, hvis det her sker er der nogen der prøver at ødelægge serveren.
 
-		// Hvis spilleren allerede er 
+		// Hvis spilleren allerede er inviteret
 		let is_invited = false
 		for (let player of room.invited)
 			if (player.username == username)
 				is_invited = true
 
-		if (is_invited) return
+		target_player.send_message('invite_from', current_player.username) // Sender en socket.io meddelse til spilleren om at den er blevet inviteret.
+		if (is_invited) return // Hvis spilleren allerede er blevet inviteret.
 
 		const target_player = Players.find('username', username)
 		if (!target_player) return
 		room.invited.push(target_player)
-
-		target_player.send_message('invite_from', current_player.username)
-		this.broadcast_info(room.id, 'players')
+		
+		this.broadcast_info(room.id, 'players') // Opdaterer klienterne
 	}
 
+	// Låser en bruger i et rum, så han ikke længere kan skifte hold.
+	// Denne funktion går igennem owner_action, som sørger for at kun ejeren kan kalde denne funktion.
 	lock_user(room, target) {
 		for (let player of room.players) {
 			if (player.username == target) {
@@ -133,7 +138,7 @@ class Rooms extends Game_functions {
 			}
 		}
 
-		this.broadcast_info(room.id, 'players')
+		this.broadcast_info(room.id, 'players') // Opdaterer spillerene.
 	}
 
 
@@ -190,12 +195,9 @@ class Rooms extends Game_functions {
 				if (Object.keys( teams ).length == 2) {
 					extra = 2
 				}
-				else {
-					
-				}
 			}
 			
-			
+			// En irriterende process, som skaffer den næste værdi i arrayet.
 			let new_index = Object.keys(arr).indexOf(val) + extra
 			if (new_index > Object.keys(arr).length-1) 
 			new_index -= Object.keys(arr).length
@@ -237,6 +239,9 @@ class Rooms extends Game_functions {
 			room.turn_order.push(player)
 		}
 		
+		// Nulstiller og sætter nogle variabler i rummet. 
+		// Den eneste grund til dette, er fordi man har muligheden for at genstarte et spil, og uden nulstillede variabler
+		// Ville spillet ikke være ordentlig genstartet.
 		room.amount_of_teams = amount_of_teams
 		room.in_progress = true
 		room.ended = false
@@ -245,22 +250,23 @@ class Rooms extends Game_functions {
 		room.whichTurn = room.turn_order[0]
 		room.clear_board()
 		
-		// console.table(layout)
+		// Kalder nogle funktioner som opdaterer alle spillerne i rummet
 		room.send_hands(true)
 		room.send_info()
 	}
 
 	// En handling som kun ejeren kan tage går igennem her.
 	owner_action(con_pkg, action, target) {
+		// Først bliver der lavet en masse tjeks!
 		const { current_player } = con_pkg
-		if (!current_player) return
+		if (!current_player) return 										// Tjekker om spilleren eksistere.
 		let room = this.find('id', current_player.room_id)
-		if (!room) return
-		if (room.creator != current_player.username) return // Det skal være ejeren af rummet
-		if (room.creator == target) return // Ejeren må ikke vælge sig selv
-		if (!Players.find('username', target) && target !== false) return // Hvis spilleren ikke findes
+		if (!room) return													// Tjekker om rummet eksistere
+		if (room.creator != current_player.username) return 				// Tjekker om spilleren ejer rummet
+		if (room.creator == target) return 									// Ejeren må ikke vælge sig selv
+		if (!Players.find('username', target) && target !== false) return 	// Hvis handlingen er rettet mod en spiller tjekker den også om spilleren findes.
 
-
+		// Derefter uddelegeres handlingerne
 		switch (action) {
 			case 'lock':
 				this.lock_user(room, target)
@@ -276,6 +282,7 @@ class Rooms extends Game_functions {
 		}
 	}
 
+	// Skifter spillerens hold
 	change_team(con_pkg, name) {
 		const { current_player } = con_pkg
 		if (!current_player) return
@@ -283,23 +290,27 @@ class Rooms extends Game_functions {
 		let room = this.find('id', current_player.room_id)
 		if (!room) return
 
-		if (room.in_progress) return
+		// Efter at havde tjekket om spilleren eksistere og om rummet eksistere når vi hertil.
+
+		if (room.in_progress) return // Vi tjekker dog også om spillet er i gang.
 
 		for (let player of room.players) {
-			if (player.username != name) continue
-			if (player.gameData.teamLocked && current_player.username != room.creator) return
+			if (player.username != name) continue // Sørger for at filtrere alle spillere som ikke har målets brugernavn fra.
+			if (player.gameData.teamLocked && current_player.username != room.creator) return // Hvis holdet er låst stopper festen her! ...med mindre at det er ejeren af rummet.
 
-			if (name == current_player.username || current_player.username == room.creator) {
+			if (name == current_player.username || current_player.username == room.creator) { // Tjekker at det enten er spilleren selv, eller ejeren som skifter hold på vegne af spilleren
+				// Finder det næste hold i rækkefølgen.
 				let colors = ['spectator', 'blue', 'red', 'green']
 				let newIndex = colors.indexOf( player.gameData.teamColor ) + 1
 				if (newIndex > colors.length-1) newIndex = 0
 	
-				player.gameData.teamColor = colors[newIndex]
-				this.broadcast_info(room.id, 'players')
+				player.gameData.teamColor = colors[newIndex] // Opdaterer holdfarven
+				this.broadcast_info(room.id, 'players') // og opdaterer spillerne.
 			}
 		}
 	}
 
+	// En lille funktion som meddeler tilbage hvem ejeren af rummet er.
 	get_owner(con_pkg) {
 		const { socket, current_player } = con_pkg
 		if (!current_player) return
@@ -310,6 +321,7 @@ class Rooms extends Game_functions {
 		socket.emit('room_owner', room.creator)
 	}
 
+	// En funktion som bliver kaldt når klienten vil vide, hvilke spillere er i lobbyen.
 	get_players(con_pkg) {
 		const { socket, current_player } = con_pkg
 		if (!current_player) return
@@ -317,34 +329,11 @@ class Rooms extends Game_functions {
 		let room = this.find('id', current_player.room_id)
 		if (!room) return
 
+		// Vi bruger databasens indbyggede fetch funktion til at filtrere alle spillere som ikke er i samme rum fra.
 		socket.emit('lobby_players', Players.fetch(['username', 'gameData'], 'room_id', room.id))
 	}
 
-	change_name(con_pkg, name) {
-		const { socket, current_player } = con_pkg
-		if (!current_player) return
-
-		const invalid = checkVariable(name, { "type": "string", "minLength": 1, "maxLength": 30 })
-		const room = this.find(current_player.room_id)
-		if (invalid || !room) {
-			socket.emit('response:room_change_name', false)
-			return
-		}
-
-
-		if (room.creator == current_player.uuid) {
-			room.name = name
-		}
-
-		socket.emit('response:room_change_name', true) // Så klienten ved at alt gik godt
-
-		// Sender en update til alle spiller i et rum. (undtagen ejeren)
-		for (let player of room.players) {
-			if (player.uuid == room.creator.uuid) continue
-			io.to(player.sid, 'update:room', room)
-		}
-	}
-
+	// Funktionen som bliver kaldt når spiller gerne vil forlade rummet.
 	leave(con_pkg) {
 		const { io, current_player } = con_pkg
 		if (!current_player) return
@@ -368,6 +357,7 @@ class Rooms extends Game_functions {
 			room.remove_player(current_player.username)
 		}
 
+		// Opdaterer alle klienterne.
 		this.broadcast_info(room.id, 'players')
 		let player_data = Players.fetch(['username', 'room_id'])
         io.emit('list_players', player_data)
