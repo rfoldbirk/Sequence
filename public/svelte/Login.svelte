@@ -7,6 +7,9 @@
 
 	let username = ''
 
+	// Funktionen kalder sig så snart promptLogin opdateres.
+	// Den udfylder derfor input feltet med det brugernavn som er blevet gemt i localStorage.
+	// Derefter spørger den serveren om brugernavnet stadig er gyldigt.
 	$: {
 		if (promptLogin && input_field) {
 			input_field.focus()
@@ -16,24 +19,27 @@
 	}
 	
 
+	// Hver gang en tast bliver trykket, bliver denne funktion kaldt.
 	function key_up({key}) {
-		if (!input_field) return
+		if (!input_field) return // Hvis input_field ikke er bundet endnu returnerer den.
 		if (key == 'Enter') {
-			click()
+			click() // Hvis Enter knappen bliver trykket, forsøger den i stedet at klikke på knappen.
 			return
 		}
 
-		let current_input = input_field.value
+		let current_input = input_field.value // Den husker det midlertidige input
 		valid_input = null
 
+		// Idéen er at klienten først spørger serveren efter 350ms. Den spørger dog kun hvis brugeren ikke har skrevet noget i 350ms. 
+
 		setTimeout(() => {
-			if (current_input != input_field.value) return
+			if (current_input != input_field.value) return // Hvis de to inputs ikke længere matcher, returnerer den.
 
 			socket.emit('check_username', current_input)
 		}, 350);
 	}
 
-	
+	// Funktionen som bliver affyret, når man trykker på login knappen.
 	function click() {
 		if (!input_field) return
 		if (!valid_input) return
@@ -52,6 +58,7 @@
 		$me = _username
 	})
 
+	// Serveren sender dette tilbage, og fortæller hvorvidt brugernavnet er gyldigt.
 	socket.on('name_requirements', data => {
 		if (!input_field) return
 		if (input_field.value.length == 0) {
@@ -59,29 +66,15 @@
 			return
 		}
 		valid_input = (data == 'valid' ? true:false)
-
-		// Skal fjernes --------
-		// if (valid_input) click()
-		// setTimeout(() => {
-		// 	if (localStorage.getItem('username') != 'Privat')
-		// 		socket.emit('invite', 'Privat')
-		// }, 500);
-		// ---------------------
 	})
 
-
+	// Serveren fortæller at klienten skal gemme en slags kodeord.
 	socket.on('set_uuid', uuid => {
 		localStorage.setItem('uuid', uuid)
 		localStorage.setItem('username', username)
 		promptLogin = false
 
 		$me = username
-
-		// Skal fjernes --------
-		// if (username == 'Rasmus')
-		// 	socket.emit('invite', 'Privat')
-		// else
-		// 	socket.emit('join_lobby', 'Rasmus')
 	})
 </script>
 

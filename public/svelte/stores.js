@@ -1,3 +1,4 @@
+// En kollektion af variabler som kan importeres fra alle andre komponenter
 import { writable } from 'svelte/store';
 
 export const me = writable('');

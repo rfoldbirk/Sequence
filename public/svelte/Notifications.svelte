@@ -1,12 +1,29 @@
 <script>
 	import { fly } from 'svelte/transition'
-	import { me, players } from './stores';
+	import { me } from './stores';
 
 	let messages = []
 	let notif_count = 0
 
+	/* Denne komponent sørger for at vise og lave nye notifikationer.
+
+	Systemet er ikke super smart...
+	Det består af tre dele
+
+	1. Klienten får en besked fra serveren, som den skal lave om til en notifikation
+	2. new_message() bliver kaldt med den relevante data. Da beskederne skal oversættes til læseligt dansk bliver funktionen lidt lang og mærkelig
+	3. Meddelsen bliver smidt ind i arrayet messages, hvor den har det godt indtil den bliver slettet.
+
+
+	*/
 	function new_message(event, target) {
 		let msg = {}
+
+		/*
+		msg indeholder vigtist af alt: action.event og action.data, 
+		som fortæller klienten hvad der skal sendes tilbage til serveren, 
+		hvis accept knappen trykkes.
+		*/
 		
 		if (event == 'request_invitation') {
 			msg.title = `${target}, vil gerne joine din lobby`
@@ -21,9 +38,6 @@
 				event: 'join_lobby',
 				data: target
 			}
-			// setTimeout(() => {
-			// 	accept(msg.action.event, msg.action.data, msg._id)
-			// }, 200);
 		}
 		else if (event == 'locked') {
 			msg.title = (target) ? 'Ejeren har låst dit hold':'Ejeren har låst op for valg af hold'
@@ -36,27 +50,24 @@
 		}
 		else if (event == 'beam') {
 			msg.title = target + ' på stribe!'
-		}else if(event == 'game_lost'){
-			msg.title = `Vinderen af spillet er hold ${target}`
-		}else if(event == 'game_won'){
-			msg.title = `Du har vundet spillet!!!`
 		}
 
-		msg._id = ++notif_count
+		msg._id = ++notif_count // Id'et bruges til at finde beskeden i arrayet, når den skal slettes.
 		messages = [...messages, msg]
 
-
+		// Fjerner notifikationen efter 10 sekunder.
 		setTimeout(() => {
 			remove_notif(msg._id)
 		}, 10000)
 	}
 
-
+	// Funktionen som bliver kaldt når der trykkes på accept knappen.
 	function accept(event, data, id) {
 		socket.emit(event, data)
 		remove_notif(id)
 	}
 
+	// Funktionen søger arrayet igennem, og fjerner det element som matcher.
 	function remove_notif(id) {
 		for (let i in messages) {
 			if (messages[i]._id == id) {
@@ -65,18 +76,8 @@
 		}
 		messages = messages
 	}
-	socket.on('winner', color => {
-		if(color.includes("|")){
-			new_message("game_lost", color)
-		}
-		$players.forEach(player => {
-			if(player.username == $me && player.gameData.teamColor == color){
-				new_message("game_won", color)
-			}else{
-				new_message("game_lost", color)
-			}
-		})
-	})
+
+	// Her fra er der en masse events fra serveren, som bliver delvist oversat til notifikationer.
 	socket.on('invite_from', user => {
 		new_message('game_invite', user)
 	})
@@ -86,23 +87,29 @@
 	})
 
 	socket.on('turn', turn => {
+		// Fjerner først alle notifikationer som har titlen: "Det er din tur"
 		for (let i in messages) {
 			if (messages[i].title == 'Det er din tur') {
 				remove_notif(messages[i]._id)
 			}
 		}
+
+		// Hvis det er spillerens tur, oprettes der en ny notifikation.
 		if (turn == $me) {
 			new_message('turn')
 		}
 
 	})
 
+	// En event når der er 5 eller 10 på stribe.
 	socket.on('beam', length => new_message('beam', length))
 	
+	// Når en spiller i en lobby bliver låst.
 	socket.on('locked', state => {
 		new_message('locked', state)
 	})
 
+	// Hvis en spiller bliver smidt ud.
 	socket.on('got_kicked', () => {
 		new_message('kicked')
 	})

@@ -1,3 +1,20 @@
+/*
+    Et token system, som kan generere unikke tokens med en bestemt maks alder.
+
+    Funktioner:
+
+    uniqueToken: Returnere en unik token
+      length:           int             Hvor lang token skal være.
+      life_in_seconds:  int|string      Giver lidt sig selv. Bestemmer hvor lang tid token skal kunne overleve. Man kan også sætte denne parameter til 'never', så den overlever for evigt.
+      
+    checkToken: Tjekker om en token stadig er gyldig. Kalder desuden cleanup()
+      token:            token           Selve token objektet
+
+    remove: Finder og fjerner en given token
+      token.str         string          En streng af tekst, som
+    
+    cleanup: Leder efter tokens, som er udløbet og fjerner dem.
+*/
 let _tokens = []
 
 class Tokens {
