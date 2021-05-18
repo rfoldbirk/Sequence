@@ -3,9 +3,14 @@ const _unlimited_turned_off = true // Kun til test! Slå denne variable fra, for
 // ----------------------------------------------------------------------------------------------------------------------------------- //
 
 
-
+//importere modulet fs til at kunne læse file board.json
 var fs = require("fs")
+
+//henter db filen så den kan bruge i dette program
 var Database = require("./util/db.js");
+
+//objekt af forskellige retninger/offsets til vores beam funktion
+//retningerne er det samme som retninger på et kompas: n = north, ne = north-east osv.
 const directions = {
 	n: {
 		x: 0,
@@ -45,92 +50,163 @@ const directions = {
 
 class Game_meta {
 	constructor() {
+		//boolean til at holde styr på om spillet er i gang
 		this.in_progress = false
+
+		//boolean til at holde styr på når spiller er slut, spillet slutter fx når et hold vinder
 		this.ended = false
+
+		//variable til at holde kort
 		this.cards
+
+		//variable som holde styr på hvilken spillers tur det er
 		this.whichTurn
 
-		this.layout // et array som indeholder top, right, bottom og left med spiller navne
-		this.turn_order = [] // et array som dikterer rækkefølgen
+		// et array som indeholder top, right, bottom og left med spiller navne
+		this.layout
+
+		// et array som dikterer rækkefølgen
+		this.turn_order = []
+
+		// variable som holder styr på hvor mange hold der er i spillet: bliver sat i rooms.js
 		this.amount_of_teams = 0
 
-		this.pass_in_row = 0 // Holder øje med hvor mange der har passet efter hinanden
-		this.pass_limit = 3 // Hvis pass_in_row overstiger denne værdi, stopper spillet, og holdet med flest point vinder
+		// Holder øje med hvor mange der har passet efter hinanden
+		this.pass_in_row = 0
 
+		// Hvis pass_in_row overstiger denne værdi, stopper spillet, og holdet med flest point vinder
+		this.pass_limit = 3 
+
+		//array som holder de kort er ikke er blevet brugt i spillet endnu
+		//kalder funktion makeCardArray for at skabe et nyt kort-sæt når spillet starter
 		this.availableCards = this.makeCardArray()
+
+		// ikke i brug på dette tidspunkt
 		this.usedCards = [];
+
+		//variable til at holde spillepladen, bliver til et objekt når pladen er hentet
 		this.board
+
+		//objekt til at holde styr på hvor mange points de forskellige hold har
 		this.points = {
 			'blue': 0,
 			'red': 0,
 			'green': 0
 		}
-		this.clear_board() // Loader boardet
+
+		// Loader boardet
+		this.clear_board()
 	}
+
+	//funktion som laver et nyt kort-sæt
 	makeCardArray() {
+		//array som holder de forskellige kulører - clubs, diamonds, hearts & spades
 		var cardArray = ["c", "d", "h", "s"];
+
+		//array til at holde alle kortene
 		var cards = [];
+
+		//løkke som kører igennem cardArray
 		for (var i = 0; i < cardArray.length; i++) {
+			//kalder funktionen sorter 2 gange for at lave 2 af hvert kort og tilføjer de motaget arrays til cards arrayet
 			cards = cards.concat(this.sorter(cardArray[i]))
 			cards = cards.concat(this.sorter(cardArray[i]))
 		}
+		//returnere cards når funktion har genereret dem
 		return cards
 	}
+	//laver 13 af kort til hver kulør per gang den bliver kørt
 	sorter(x) {
+		//array til at holde de kort der bliver lavet
 		var cards = [];
+		//loop som kører 13 gange
 		for (var i = 1; i < 14; i++) {
+			//tilføjer kortet til cards. x = den kulør funktion blev kaldt med og i er index i løkken
 			cards.push(x + i)
 		}
+		//returnere de 13 kort der bliver lavet
 		return cards
 	}
+	//funktion til at tage et tilfældigt kort fra availableCards
 	pickRandomCard() {
+		//lavet et random tal fra 0 til hvor mange kort der er tilbage i availableCards
 		var random = Math.floor(Math.random() * this.availableCards.length)
+		
+		//definere det tilfældige kort ud fra random
 		var card = this.availableCards[random];
+
+		//slettet det kort som blev valgt
 		this.availableCards.splice(random, 1);
+		
+		//returnere det tilfældige kort
 		return card
 	}
+	//funktion til at sende en socket.io besked til alle spillerne i et rum
 	broadcast(event, data) {
+		//forEach loop som kører gennem alle spillerne i rummet og sender dem beskeden
 		this.players.forEach(player => {
 			player.socket.emit(event, data)
 		})
 	}
 
-
+	//funktion til at sende 6 kort til alle spillere i starten af spillet
 	send_hands(give_6) {
 		give_6 = give_6 || false
 
+		//loop som kører igennem alle spilleren i this.players
 		for (let player of this.players) {
+			//hvis give_6 = true
 			if (give_6) {
+				//sætter et tomt array på hver spiller under gameData.cards til a holde de 6 kort
 				player.gameData.cards = []
+				
+				//loop som bliver kørt 6 gange
 				for (let i = 0; i < 6; i++) {
+					//tilføjer et nyt tilfældigt kort til player.gameData.cards
 					player.gameData.cards.push(this.pickRandomCard())
 				}
 			}
-
+			//sender de 6 kort til spilleren over socket.io
 			player.send_message('hand', player.gameData.cards)
 		}
 	}
 
+	//funktion til at sende alt information omkring spillet hvis en spiller genindlæser hjemmesiden
 	send_info() {
+		//sender layout
 		this.broadcast('layout', this.layout)
+		
+		//sender hvis tur det er
 		this.broadcast('turn', this.whichTurn)
+		
+		//sender spillepladen
 		this.broadcast('board', this.board)
 
+		//sender hvor mange points de forskellige hold har
 		this.broadcast('points', this.points)
+
+		//sender hvilket kort alle spillere har
 		for (const player of this.players)
 			player.send_message('hand', player.gameData.cards)
 	}
 
-
+	//funktion som finder den næste persons tur
 	next_turn(current_player) {
+		//finder den næste spiller ud fra den nuværende spiller plus 1
 		let next_player_index = this.turn_order.indexOf(this.whichTurn) + 1
+
+		//hvis next_player_index resultere i et tal der er større end antal spillere bliver next_player_index sat til 0
 		if (next_player_index > this.turn_order.length - 1)
 			next_player_index = 0
 
+		//whichTurn bliver sat til den valgte spiller
 		this.whichTurn = this.turn_order[next_player_index]
+		
+		//spilleren som havde tur før funktion blev kaldt (current_player) kan nu trække et kort
 		current_player.gameData.canDraw = true
 	}
 
+	//funktion som henter spillepladen fra filen board.json med modulet fs
 	clear_board() {
 		this.board = JSON.parse(String(fs.readFileSync("./board.json")))
 	}
@@ -275,16 +351,21 @@ class Game_functions extends Database {
 		super(rooms)
 	}
 
+	//funktion til at springe sin tur over
 	pass(con_pkg) {
+		//henter spillerens rum ud fra spillerens connection package
 		const room = this.check_if_player_is_permitted(con_pkg)
 		if (!room) return
 
+		//next_turn bliver kaldt da den nuværende spiller har sprunget sin tur over og det er nu næste person der har tur
 		room.next_turn(con_pkg.current_player)
 
+		//pass_in_row bliver sat op med 1
 		room.pass_in_row += 1
 
-		console.log('passes in a row:', room.pass_in_row)
+		// console.log('passes in a row:', room.pass_in_row)
 
+		//hvis pass_in_row er over den limit vi har sat på 3 så
 		if (room.pass_in_row > room.pass_limit) {
 
 			console.log('\nfinding winner!')
@@ -293,18 +374,25 @@ class Game_functions extends Database {
 			let winnerTeam = ''
 			let winnerScore = 0
 
+			//loop der kører igennem hvor mange de forskellige hold har
 			for (const teamColor of Object.keys(room.points)) {
+				// hvis et hold har højere antal points end winnerScore
 				if (room.points[teamColor] > winnerScore) {
+					//bliver winnnerScore ændret til det antal points holdet har
 					winnerScore = room.points[teamColor]
+					//og WinnerTeam bliver sat til holdets farve
 					winnerTeam = teamColor
 				} else if (room.points[teamColor] == winnerScore) {
-					winnerTeam += '|teamColor' // Bare så man kan adskille dem
+					winnerTeam += `|${teamColor}` // Bare så man kan adskille dem
 				}
 			}
-
+			//hvis der ikke bliver fundet en vinder. bliver winnerTeam sat til 'nobody'
 			if (winnerTeam == '') winnerTeam = 'nobody'
 
+			//room.end booleanen bliver sat til true
 			room.ended = true
+
+			//sender en besked til alle spillerne om hvem der har vundet
 			room.broadcast('winner', winnerTeam)
 		}
 	}
@@ -412,26 +500,37 @@ class Game_functions extends Database {
 		room.send_info()
 	}
 
+	//funktion til at trække et kort
 	draw_card(con_pkg) {
 		let {
 			current_player
 		} = con_pkg
 
+		// hvis der ikke er en spiller stopper funktion
 		if (!current_player.gameData.canDraw) return
 
+		//henter spillerens rum ud fra con_pkg
 		const room = this.check_if_player_is_permitted(con_pkg, true)
 		if (!room) return
 
+		//finder spillerens index i room.turn_order
 		let myIndex = room.turn_order.indexOf(current_player.username)
+		//finder indext på personen som har tur
 		let nextIndex = room.turn_order.indexOf(room.whichTurn)
 
+		//hvis nextIndex er 0, så bliver nextIndex sat til længden af turn_order
 		if (nextIndex == 0) nextIndex += room.turn_order.length
 
+		//hvis nextIndex - myIndex er 1, så har spilleren lov til at trække et kort
 		if (nextIndex - myIndex == 1) {
+			//et random kort bliver fundet
 			const card = room.pickRandomCard()
+			//tilføjere det nye kort til spillerens hånd
 			current_player.gameData.cards.push(card)
+			//canDraw bliver sat til false og spiller kan nu ikke trække et kort længere
 			current_player.gameData.canDraw = false
 
+			//spillerens hånd bliver sendt til alle spillerne
 			for (const player of room.players)
 				player.send_message('hand', player.gameData.cards)
 		}
@@ -439,7 +538,7 @@ class Game_functions extends Database {
 }
 
 
-
+//exportere Game_meta & Game_functions
 module.exports = {
 	Game_meta,
 	Game_functions
