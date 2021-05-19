@@ -118,10 +118,10 @@ class Rooms extends Game_functions {
 			if (player.username == username)
 				is_invited = true
 
+		const target_player = Players.find('username', username)
 		target_player.send_message('invite_from', current_player.username) // Sender en socket.io meddelse til spilleren om at den er blevet inviteret.
 		if (is_invited) return // Hvis spilleren allerede er blevet inviteret.
 
-		const target_player = Players.find('username', username)
 		if (!target_player) return
 		room.invited.push(target_player)
 		

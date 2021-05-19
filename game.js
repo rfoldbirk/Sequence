@@ -242,54 +242,61 @@ class Game_meta {
 		for (const i in Object.keys(directions)) {
 			if (i > 3) return sequences
 
+			// Finder de to retninger
 			const dir0 = Object.keys(directions)[i]
 			const dir1 = Object.keys(directions)[Number(i) + 4]
 
+			// Sender to beams ud i hver retning
 			const res0 = this.beam(yx, dir0, color, action)
 			const res1 = this.beam(yx, dir1, color, action)
 
+			// Pluser de to værdier sammen.
 			const _count = res0._count + res1._count + 1
 			const _beam_count = (res0._beam_count > res1._beam_count) ? res0._beam_count : res1._beam_count
 
-
+			// Hvis spilleren får enten 5 eller 10 på stribe samtidigt med at den sequence er ny og unik.
 			if (_count >= _beam_count * 5 && _beam_count < Math.floor(_count / 5)) {
 
+				// Sætter den korrekte metadata på token
 				this.board[yx[0]][yx[1]]._beam_count = Math.floor(_count / 5)
 				this.assign_direction(yx, dir0, dir1)
 
 				if (action == 'add') {
-					console.log('\nadding points:', Math.floor(_count / 5))
-
+					// Tilføjer nogle point og sender en notifikation til spillerne
 					this.points[color] += Math.floor(_count / 5)
 					this.broadcast('beam', Math.floor(_count / 5) * 5)
 
-					console.log('points is now:', this.points)
 
 					// Tjekker om der er en vinder
-					if (this.amount_of_teams == 2) {
-						if (this.points[color] == 2) {
-							this.broadcast('winner', color)
-							this.ended = true
-						}
-					} else if (this.amount_of_teams == 3) {
-						if (this.points[color] == 1) {
-							this.broadcast('winner', color)
-							this.ended = true
+					if (!this.ended) {
+						if (this.amount_of_teams == 2) {
+							if (this.points[color] == 2) {
+								this.broadcast('winner', color)
+								this.ended = true
+							}
+						} else if (this.amount_of_teams == 3) {
+							if (this.points[color] == 1) {
+								this.broadcast('winner', color)
+								this.ended = true
+							}
 						}
 					}
 				}
 			}
 
-
+			// Bruges til at returnere mængden af sequences.
 			if (_count >= 5 && action == 'check') {
 				sequences += 1
 			}
 
+			// Hvis den skal fjernes 
 			if (_count < 5 && action == 'delete') {
+				// Hvis der ikke findes noget metadata, returneres antallet af sequences
 				if (this.board[yx[0]][yx[1]]._direction == '' || !this.board[yx[0]][yx[1]]._direction) {
 					return sequences
 				}
 
+				// Fjerner metadataen
 				this.board[yx[0]][yx[1]]._beam_count = 0
 				this.assign_direction(yx, dir0, dir1, true)
 
@@ -301,19 +308,27 @@ class Game_meta {
 	}
 
 	beam(yx, direction, color, action = 'add', _count = 0, _beam_count = 0, _first = true) {
-		const location = this.board[yx[0]][yx[1]]
-		const direction_val = directions[direction]
+		const location = this.board[yx[0]][yx[1]] // Finder kortet på brættet
+		const direction_val = directions[direction] // Finder retningens x, y værdier
 
+		// Hvis kortet enten har samme farve, er en buffer, eller hvis hvis token skal fjernes.
 		if (location.token == color || location.card == 'buffer' || 'remove'.includes(action)) {
 
+			// Beregner den nye placering
 			const new_yx = [String(Number(yx[0]) + direction_val.y), String(Number(yx[1]) + direction_val.x)]
 
+			// Da man ikke skal tælle den første pollete med, springer vi det over.
 			if (!_first) {
-				_count++
+				_count++ // Pluser antallet af tokens i træk
 
+				// Hvis token allerede er en del af en sequence, er dens _beam_count højere end 0.
+				// Hvis _beam_count er højere end det nuværende antal, og hvis den sequence som token er del af har samme retning
+				// Så overskrives vores _beam_count, så programmet ved om det er en ny eller gammel sequence.
 				if (Number(location._beam_count) > _beam_count && String(location._direction).includes(`-${direction}-`)) {
 					_beam_count = location._beam_count
 
+					// Hvis beam tjekkeren skal fjerne, kalder den check_for_win med intentionen om at fjerne lokationens meta data,
+					// hvis lokationen ikke længere er del af en sequence
 					if (action == 'remove') {
 						this.check_for_win(yx, color, 'delete')
 						return {
@@ -324,17 +339,20 @@ class Game_meta {
 				}
 			}
 
-
+			// Returnerer hvis kanten af brættet er nået (i minus)
 			if (new_yx[0].includes('-') || new_yx[1].includes('-'))
 				return {
 					_count,
 					_beam_count
 				}
+			// Returnerer hvis kanten af brættet er nået.
 			else if (Number(new_yx[0]) > 9 || Number(new_yx[1]) > 9)
 				return {
 					_count,
 					_beam_count
 				}
+
+			// Fortsætter i samme retning
 			return this.beam(new_yx, direction, color, action, _count, _beam_count, false)
 		} else {
 			return {
@@ -500,11 +518,11 @@ class Game_functions extends Database {
 		room.send_info()
 	}
 
-	//funktion til at trække et kort
+	// funktion til at trække et kort
 	draw_card(con_pkg) {
-		let {
-			current_player
-		} = con_pkg
+		let { current_player } = con_pkg
+
+		if (!current_player) return
 
 		// hvis der ikke er en spiller stopper funktion
 		if (!current_player.gameData.canDraw) return
