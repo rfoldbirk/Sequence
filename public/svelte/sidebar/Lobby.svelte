@@ -63,9 +63,11 @@
 {#if $players.length > 0}
 	<div transition:fly="{{ y: 200, duration: 300 }}"  class="lobby {$players.length > 0 ? 'show':''}">
 		<div class="controls" style={!$isOwner ? 'grid-template-columns: 1fr':''}>
+			
 			{#if $isOwner}
 				<button on:click={ start_game } class="settings"> { $in_progress ? 'Genstart':'Start spil!' } </button>
 			{/if}
+			
 			<div></div>
 			<button on:click={ leave } class="remove"> { $isOwner ? 'Fjern':'Forlad' } rum </button>
 		</div>
@@ -76,9 +78,11 @@
 		</div>
 
 		<div class="players">
+
 			{#each $players as { username, gameData }}
 				<p meta={gameData.teamLocked} id={ gameData.teamColor } on:click={ change_team(username) }> { username } </p>
 			{/each}
+			
 		</div>
 	</div>
 {/if}
