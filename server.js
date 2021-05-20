@@ -7,12 +7,6 @@ const board = JSON.parse(String(fs.readFileSync("./board.json")))
 if (process.argv.includes('--clear')) clear()
 
 if (!process.argv.includes('--ignore')) {
-	if (process.platform == 'win32') {
-		execSync('mkdir -Force public/compiled', { stdio: 'ignore' })
-	}
-	else {
-		execSync('mkdir -p public/compiled', { stdio: 'ignore' })
-	}
 	execSync('npx rollup -c', { stdio: 'ignore' })
 }
 
